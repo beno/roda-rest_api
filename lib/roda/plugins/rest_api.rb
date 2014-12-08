@@ -41,8 +41,7 @@ class Roda
 						yield
 					end
 				end
-					
-				
+
 				def resource name
 					on name.to_s do
 						yield
