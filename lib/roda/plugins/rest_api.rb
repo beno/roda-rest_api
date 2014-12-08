@@ -1,6 +1,6 @@
 class Roda
 	module RodaPlugins
-		
+
 		module HeaderMatchers
 			module RequestMethods
 
@@ -22,7 +22,7 @@ class Roda
 			end
 
 			module RequestMethods
-				
+
 				def api(options={})
 					api_path = options.delete(:path) || 'api'
 					if api_path.length > 0
@@ -35,7 +35,7 @@ class Roda
 						end
 					end
 				end
-				
+
 				def version version
 					on "v#{version}" do
 						yield
@@ -47,7 +47,7 @@ class Roda
 						yield
 					end
 				end
-				
+
 				def index(options={})
 					is do
 						pass if is_post?
@@ -59,19 +59,19 @@ class Roda
 						yield
 					end
 				end
-				
+
 				def show(options={})
 					get ":d" do |id|
 						yield id
 					end
 				end
-				
+
 				def create(options={})
 					post do
 						yield
 					end
 				end
-								
+
 				def update(options={})
 					patch ":d" do |id|
 						yield id
@@ -80,35 +80,35 @@ class Roda
 						yield id
 					end
 				end
-				
+
 				def destroy(options={})
 					delete ":d" do |id|
 						yield id
 					end
 				end
-				
+
 				def edit(options={})
 					get ":d/_edit" do |id|
 						yield id
 					end
 				end
-				
+
 				def new(options={})
 					get "_new" do
 						yield
 					end
 				end
-				
+
 				private
-				
+
 				def is_post?
 					env['REQUEST_METHOD'] == 'POST'
 				end
-				
+
 			end
 
 		end
-		
+
 		register_plugin(:rest_api, RestApi)
 
 	end
