@@ -23,7 +23,7 @@ Run tests with
             r.show do |id|      # GET /v1/albums/:id
               # show album
             end
-            r.update do |id|    # PATCH /v1/albums/:id or PUT /albums/:id
+            r.update do |id|    # PATCH or PUT /v1/albums/:id
               # update album
             end
             r.destroy do |id|   # DELETE /v1/albums/:id
