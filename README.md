@@ -9,6 +9,7 @@ Run tests with
 
 ### Usage
 
+```ruby
     route do |r|
       r.api path:'', subdomain:'api' do #default path is 'api'
         r.version 1 do
@@ -17,7 +18,7 @@ Run tests with
               # list albums
             end
             r.create do
-          # create album
+              # create album
             end
             r.show do |id|
               # show album
@@ -38,3 +39,4 @@ Run tests with
         end
       end
     end
+```
