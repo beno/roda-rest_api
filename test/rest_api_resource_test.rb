@@ -17,13 +17,13 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		end
 	end
   
-  	def test_index_no_slash
+	def test_index_no_slash
 		assert_equal 'album index', body('/albums')
 	end
 
 	def test_index_slash
 		assert_equal 'album index', body('/albums/')
-  	end
+	end
 
 	def test_show
 		assert_equal 'album 12 show', body('/albums/12')
