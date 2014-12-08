@@ -3,6 +3,7 @@ GEM
   specs:
     minitest (4.7.5)
     rack (1.5.2)
+    rake (10.1.0)
     roda (1.1.0)
       rack
     sequel (4.17.0)
@@ -12,5 +13,6 @@ PLATFORMS
 
 DEPENDENCIES
   minitest
+  rake
   roda
   sequel
