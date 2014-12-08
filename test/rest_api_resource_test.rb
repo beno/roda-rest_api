@@ -1,19 +1,19 @@
 require "test_helpers"
 
-class RestApiTest < Minitest::Unit::TestCase
+class RestApiResourceTest < Minitest::Unit::TestCase
 	include TestHelpers
 	
   	def setup
-  		@app = app :rest_api do |r|
+  		app :rest_api do |r|
   			r.resource :albums do
-	  			r.index {"album index"}
-	  			r.show {|id| "album #{id} show"}
-	  			r.update {|id| "album #{id} update"}
-	  			r.destroy {|id| "album #{id} destroy"}
-	  			r.create {"album create"}
-	  			r.edit {|id| "album #{id} edit"}
-	  			r.new {"album new"}
-	  		end
+  				r.index {"album index"}
+  				r.show {|id| "album #{id} show"}
+  				r.update {|id| "album #{id} update"}
+  				r.destroy {|id| "album #{id} destroy"}
+  				r.create {"album create"}
+  				r.edit {|id| "album #{id} edit"}
+  				r.new {"album new"}
+  			end
   		end
   	end
   
@@ -53,17 +53,9 @@ class RestApiTest < Minitest::Unit::TestCase
 		assert_equal 'album new', body('/albums/_new')
 	end
 	
+	def test_fail
+		assert_equal 404, status('/albumss')
+	end
 	
-
-		# assert_equal 'object new', body('/objects/_new')
-		# assert_equal 'object_12 edit', body('/objects/12/_edit')
-  		  
-  	# def test_that_it_will_not_blend
-  	# 	refute_match /^no/i, @meme.will_it_blend?
-  	# end
-  	#
-  	# def test_that_will_be_skipped
-  	# 	skip "test this later"
-  	# end
 end
   
