@@ -14,8 +14,8 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 				r.edit {|id| "album #{id} edit"}
 				r.new {"album new"}
 			end
-    end
-  	end
+		end
+	end
   
   	def test_index_no_slash
 		assert_equal 'album index', body('/albums')
