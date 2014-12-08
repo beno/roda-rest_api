@@ -3,9 +3,9 @@ class Roda
 		
 		module HeaderMatchers
 			module RequestMethods
-				
+
 				private
-		
+
 				def match_subdomain(subdomain)
 					host.match /^#{subdomain}\./
 				end
@@ -13,14 +13,14 @@ class Roda
 		end
 
 		module RestApi
-			
+
 			def self.load_dependencies(app, _opts = {})
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
 				app.plugin :pass
 				app.plugin :header_matchers
 			end
-			
+
 			module RequestMethods
 				
 				def api(options={})

@@ -3,18 +3,18 @@ require "test_helpers"
 class RestApiResourceTest < Minitest::Unit::TestCase
 	include TestHelpers
 	
-  	def setup
-  		app :rest_api do |r|
-  			r.resource :albums do
-  				r.index {"album index"}
-  				r.show {|id| "album #{id} show"}
-  				r.update {|id| "album #{id} update"}
-  				r.destroy {|id| "album #{id} destroy"}
-  				r.create {"album create"}
-  				r.edit {|id| "album #{id} edit"}
-  				r.new {"album new"}
-  			end
-  		end
+	def setup
+		app :rest_api do |r|
+			r.resource :albums do
+				r.index {"album index"}
+				r.show {|id| "album #{id} show"}
+				r.update {|id| "album #{id} update"}
+				r.destroy {|id| "album #{id} destroy"}
+				r.create {"album create"}
+				r.edit {|id| "album #{id} edit"}
+				r.new {"album new"}
+			end
+    end
   	end
   
   	def test_index_no_slash
@@ -22,7 +22,7 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 	end
 
 	def test_index_slash
-  		assert_equal 'album index', body('/albums/')
+		assert_equal 'album index', body('/albums/')
   	end
 
 	def test_show
