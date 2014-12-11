@@ -1,5 +1,6 @@
 require "minitest/autorun"
 require "roda"
+require "json"
 
 module TestHelpers
 	def app(type=nil, &block)

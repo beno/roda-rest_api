@@ -17,94 +17,93 @@ class Roda
 			def self.load_dependencies(app, _opts = {})
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
-				app.plugin :pass
 				app.plugin :header_matchers
+				app.plugin :not_found
+				app.plugin :json
 			end
+
+			module InstanceMethods
+
+				def list(&block)
+					@list = block if block
+					@list || ->(_){raise NotImplementedError, "scope.list"}
+				end
+
+				def one(&block)
+					@one = block if block
+					@one || ->(_){raise NotImplementedError, "scope.one"}
+				end
+
+				def save(&block)
+					@save = block if block
+					@save || ->(_){raise NotImplementedError, "scope.save"}
+				end
+
+				def delete(&block)
+					@delete = block if block
+					@delete || ->(_){raise NotImplementedError, "scope.delete"}
+				end
+
+			end
+
 
 			module RequestMethods
 
-				def api(options={})
+				def api(options={}, &block)
 					api_path = options.delete(:path) || 'api'
-					if api_path.length > 0
-						on api_path, options do
-							yield
-						end
-					else
-						on options do
-							yield
-						end
-					end
+					on([api_path, true], options, &block)
 				end
 
-				def version version
-					on "v#{version}" do
-						yield
-					end
+				def version(version, &block)
+			  		on("v#{version}", &block)
+			  end
+
+			  def resource name
+			  		on name.to_s do
+				  		yield
+				  		response.status = 404
+				  	end
+			  end
+
+			  def index(options={}, &block)
+				  block ||= ->{ scope.list.call(self.GET) }
+					get(['', true], options, &block)
+			  end
+
+			  def show(options={}, &block)
+				  block ||= ->(id){scope.one.call(self.GET.merge('id' => id))}
+				  	get(':d', options, &block)
+			  end
+
+			  def create(options={}, &block)
+				  block ||= ->{scope.save.call(JSON.parse(body))}
+			  		post(['', true], options, &block)
+			  end
+
+			  def update(options={}, &block)
+				  block ||= ->(id){scope.save.call(JSON.parse(body).merge('id' => id))}
+			  		is(":d", :method=>[:put, :patch], &block)
+			  end
+
+			  def destroy(options={}, &block)
+				  block ||= ->(id){scope.delete.call(self.GET.merge({'id' => id}))}
+			  		delete(":d", options, &block)
+			  end
+
+			  def edit(options={}, &block)
+				  block ||= ->(id){scope.one.call(self.GET.merge({'id' => id}))}
+			  		get(":d/edit", options, &block)
+			  end
+
+			  def new(options={}, &block)
+				  block ||= ->{scope.one.call(self.GET.merge({'id' => 'new'}))}
+			  		get("new", options, &block)
+			  end
+
+				def routes(*routes)
+					routes = %w{ index show create update destroy edit new } if routes == [:all]
+					routes.each { |route| self.send(route) }
 				end
-
-				def resource name
-					on name.to_s do
-						yield
-					end
-				end
-
-				def index(options={})
-					is do
-						pass if is_post?
-						get do
-							yield
-						end
-					end
-					get "" do
-						yield
-					end
-				end
-
-				def show(options={})
-					get ":d" do |id|
-						yield id
-					end
-				end
-
-				def create(options={})
-					post do
-						yield
-					end
-				end
-
-				def update(options={})
-					patch ":d" do |id|
-						yield id
-					end
-					put ":d" do |id|
-						yield id
-					end
-				end
-
-				def destroy(options={})
-					delete ":d" do |id|
-						yield id
-					end
-				end
-
-				def edit(options={})
-					get ":d/_edit" do |id|
-						yield id
-					end
-				end
-
-				def new(options={})
-					get "_new" do
-						yield
-					end
-				end
-
-				private
-
-				def is_post?
-					env['REQUEST_METHOD'] == 'POST'
-				end
-
 			end
 
 		end

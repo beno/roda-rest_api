@@ -46,11 +46,11 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 	end
 
 	def test_edit
-		assert_equal 'album 12 edit', body('/albums/12/_edit')
+		assert_equal 'album 12 edit', body('/albums/12/edit')
 	end
 
 	def test_new
-		assert_equal 'album new', body('/albums/_new')
+		assert_equal 'album new', body('/albums/new')
 	end
 
 	def test_fail
