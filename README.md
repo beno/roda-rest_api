@@ -16,10 +16,10 @@ route do |r|
 
       r.resource :songs do
         self.class.json_result_classes << Song
-        list   { |params| Song.find(params) }
-        one    { |params| Song[params['id']]  }
-        delete { |params| Song[params['id']].destroy }
-        save   { |attrs|  Song.create_or_update(attrs) }
+        list   { |params| Song.find(params) }            #index
+        one    { |params| Song[params['id']]  }          #show, edit, new
+        delete { |params| Song[params['id']].destroy }   #destroy
+        save   { |attrs|  Song.create_or_update(attrs) } #create, update
         r.routes :all
       end
 
