@@ -15,18 +15,16 @@ route do |r|
     r.version 1 do
 
       r.resource :songs do
-        self.class.json_result_classes << Song
-        list   { |params| Song.find(params) }            #index
-        one    { |params| Song[params['id']]  }          #show, edit, new
+        list   { |params| Song.find(params).to_json }            #index
+        one    { |params| Song[params['id']].to_json  }          #show, edit, new
         delete { |params| Song[params['id']].destroy }   #destroy
-        save   { |attrs|  Song.create_or_update(attrs) } #create, update
+        save   { |attrs|  Song.create_or_update(attrs).to_json } #create, update
         r.routes :all
       end
 
       r.resource :artists do
-        self.class.json_result_classes << Artist
-        list   { |params| Artist.where(params) }
-        one    { |params| Artist.find(params['id'].to_i)  }
+        list   { |params| Artist.where(params).to_json }
+        one    { |params| Artist.find(params['id'].to_i).to_json  }
         r.routes :index, :show
         r.create do
           # create artist
