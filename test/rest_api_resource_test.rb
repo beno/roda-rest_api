@@ -43,6 +43,7 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		name = 'bar'
 		album = Album.new(1, name)
 		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
+		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
 	end
 
 	def test_update_patch

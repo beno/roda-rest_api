@@ -99,8 +99,11 @@ class Roda
 
 			  def create(options={}, &block)
 				 	block ||= ->{@resource.perform(:save)}
-					post(["", true], options, &block)
-			  end
+					post(["", true], options) do
+ 						response.status = 201
+ 						block.call(*captures) if block
+ 					end
+ 				end
 
 			  def update(options={}, &block)
 					block ||= default_block(:save)
@@ -110,7 +113,7 @@ class Roda
 
 			  def destroy(options={}, &block)
 					block ||= default_block(:delete)
-			  	delete(path, options) do
+					delete(path, options) do
 						response.status = 204
 						block.call(*captures) if block
 					end
