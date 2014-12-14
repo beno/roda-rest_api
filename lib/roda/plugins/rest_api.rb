@@ -24,7 +24,7 @@ class Roda
 				
 				APPLICATION_JSON = 'application/json'.freeze
 
-				attr_reader :singleton, :primary_key, :content_type
+				attr_reader :singleton, :content_type
 				
 				def initialize(request, options={})
 					@request = request

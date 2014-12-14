@@ -23,11 +23,11 @@ route do |r|
         rsc.save   { |attrs|  Song.create_or_update(attrs) } #create, update
       end
 
-      #define 2 routes and custom serializer
+      #define 2 routes and custom serializer, custom primary key
 
-      r.resource :artists, content_type: 'application/xml' do |rsc|
+      r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |rsc|
         rsc.list   { |params| Artist.where(params) }
-        rsc.one    { |params| Artist.find(params['id'])  }
+        rsc.one    { |params| Artist.find(params['artist_id'])  }
         rsc.serialize { |result| ArtistSerializer.xml(result) }
         rsc.routes :index, :show
       end
