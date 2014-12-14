@@ -18,34 +18,64 @@ class Roda
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
 				app.plugin :header_matchers
-				app.plugin :not_found
-				app.plugin :json
 			end
+			
+			class Resource
+				
+				APPLICATION_JSON = 'application/json'.freeze
 
-			module InstanceMethods
-
+				attr_reader :singleton, :primary_key, :content_type
+				
+				def initialize(name, request, options={})
+					@name = name.to_s
+					@singleton = options.delete(:singleton) || false
+					@request = request
+					@primary_key = options.delete(:primary_key) || "id"
+					@content_type = options.delete(:content_type) || APPLICATION_JSON
+				end
+				
 				def list(&block)
 					@list = block if block
-					@list || ->(_){raise NotImplementedError, "scope.list"}
+					@list || ->(_){raise NotImplementedError, "list"}
 				end
-
+				
 				def one(&block)
 					@one = block if block
-					@one || ->(_){raise NotImplementedError, "scope.one"}
+					@one || ->(_){raise NotImplementedError, "one"}
 				end
-
+				
 				def save(&block)
 					@save = block if block
-					@save || ->(_){raise NotImplementedError, "scope.save"}
+					@save || ->(_){raise NotImplementedError, "save"}
 				end
-
+				
 				def delete(&block)
 					@delete = block if block
-					@delete || ->(_){raise NotImplementedError, "scope.delete"}
+					@delete || ->(_){raise NotImplementedError, "delete"}
+				end
+				
+				def serialize(&block)
+					@serialize = block if block
+					@serialize || ->(obj){obj.is_a?(String) ? obj : obj.send(:to_json)}
+				end
+				
+				def routes(*routes)
+					@routes = routes
+				end
+										
+				def routes!
+					@routes = %i{ index show create update destroy edit new } unless @routes
+					@routes.delete :index if @singleton
+					@routes.each { |route| @request.send(route) }
+				end
+				
+				def perform(method, id = nil)
+					args = method === :save ? JSON.parse(@request.body) : @request.GET
+					args.merge!(@primary_key => id) if id
+					self.send(method).call(args) rescue @request.response.status = 404
 				end
 
 			end
-
 
 			module RequestMethods
 
@@ -58,52 +88,79 @@ class Roda
 			  		on("v#{version}", &block)
 			  end
 
-			  def resource name
-			  		on name.to_s do
-				  		yield
+			  def resource(name, options={})
+					@resource = Resource.new(name, self, options)
+			  		on(name.to_s, options) do
+				  		yield @resource
+				  		@resource.routes!
 				  		response.status = 404
 				  	end
 			  end
 
 			  def index(options={}, &block)
-				  block ||= ->{ scope.list.call(self.GET) }
+				  block ||= ->{ @resource.perform(:list) }
 					get(['', true], options, &block)
 			  end
 
 			  def show(options={}, &block)
-				  block ||= ->(id){scope.one.call(self.GET.merge('id' => id))}
-				  	get(':d', options, &block)
+				  path, block = path_and_block(:one, nil, &block)
+				  	get(path, options, &block)
 			  end
 
 			  def create(options={}, &block)
-				  block ||= ->{scope.save.call(JSON.parse(body))}
-			  		post(['', true], options, &block)
+				  block ||= ->{@resource.perform(:save)}
+			  		post(["", true], options, &block)
 			  end
 
 			  def update(options={}, &block)
-				  block ||= ->(id){scope.save.call(JSON.parse(body).merge('id' => id))}
-			  		is(":d", :method=>[:put, :patch], &block)
+				  path, block = path_and_block(:save, nil, &block)
+				  options.merge!(method: [:put, :patch])
+			  		is(path, options, &block)
 			  end
 
 			  def destroy(options={}, &block)
-				  block ||= ->(id){scope.delete.call(self.GET.merge({'id' => id}))}
-			  		delete(":d", options, &block)
+				  path, block = path_and_block(:delete, nil, &block)
+			  		delete(path, options) do
+						response.status = 204
+				  		yield if block_given?
+				  	end
 			  end
 
 			  def edit(options={}, &block)
-				  block ||= ->(id){scope.one.call(self.GET.merge({'id' => id}))}
-			  		get(":d/edit", options, &block)
+				  path, block = path_and_block(:one, "edit", &block)
+			  		get(path, options, &block)
 			  end
 
 			  def new(options={}, &block)
-				  block ||= ->{scope.one.call(self.GET.merge({'id' => 'new'}))}
+				  block ||= ->{@resource.perform(:one, "new")}
 			  		get("new", options, &block)
 			  end
-
-				def routes(*routes)
-					routes = %w{ index show create update destroy edit new } if routes == [:all]
-					routes.each { |route| self.send(route) }
+			  			  
+			  private
+			  
+			  def path_and_block(method, path = nil, &block)
+				  if @resource.singleton
+					  block ||= ->(){@resource.perform(method)}
+					  path = ["", true] unless path
+					else
+						block ||= ->(id){@resource.perform(method, id)}
+						path = [":d", path].compact.join("/")
+					end
+					[path, block]
 				end
+			  
+			  CONTENT_TYPE = 'Content-Type'.freeze
+
+			  def block_result_body(result)
+				  if result && @resource
+				  		response[CONTENT_TYPE] = @resource.content_type
+				  		@resource.serialize.call(result)
+				  	else
+					  	super
+					end
+			  end
+			  
+
 			end
 
 		end

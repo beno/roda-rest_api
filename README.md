@@ -14,26 +14,34 @@ route do |r|
   r.api path:'', subdomain:'api' do   # 'mount' API on api.example.com/v1/..., default is /api/v1/...
     r.version 1 do
 
-      r.resource :songs do
-        list   { |params| Song.find(params).to_json }            #index
-        one    { |params| Song[params['id']].to_json  }          #show, edit, new
-        delete { |params| Song[params['id']].destroy }   #destroy
-        save   { |attrs|  Song.create_or_update(attrs).to_json } #create, update
-        r.routes :all
+      #define all 7 routes
+      
+      r.resource :songs do |rsc|
+        rsc.list   { |params| Song.find(params) }            #index
+        rsc.one    { |params| Song[params['id']]  }          #show, edit, new
+        rsc.delete { |params| Song[params['id']].destroy }   #destroy
+        rsc.save   { |attrs|  Song.create_or_update(attrs) } #create, update
       end
 
-      r.resource :artists do
-        list   { |params| Artist.where(params).to_json }
-        one    { |params| Artist.find(params['id'].to_i).to_json  }
-        r.routes :index, :show
-        r.create do
-          # create artist
-        end
-        r.update do |id|
-          # update artist
-        end
-      end
+      #define 2 routes and custom serializer
 
+      r.resource :artists, content_type: 'application/xml' do |rsc|
+        rsc.list   { |params| Artist.where(params) }
+        rsc.one    { |params| Artist.find(params['id'])  }
+        rsc.serialize { |result| AlbumSerializer.xml(result) }
+        rsc.routes :index, :show
+      end
+      
+      #define 6 singleton routes 
+      
+      r.resource :profile, singleton: true do |rsc|
+        rsc.one     { |params| current_user.profile  }                      #show, edit, new
+        rsc.save    { |atts| current_user.profile.create_or_update(atts)  } #create, update
+        rsc.delete  { |params| current_user.profile.destroy  }              #destroy
+      end
+      
+      #define custom routes
+      
       r.resource :albums do
         r.index do          # GET /v1/albums
           # list albums

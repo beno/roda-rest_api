@@ -5,56 +5,98 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 
 	def setup
 		app :rest_api do |r|
-			r.resource :albums do
-				r.index {"album index"}
-				r.show {|id| "album #{id} show"}
-				r.update {|id| "album #{id} update"}
-				r.destroy {|id| "album #{id} destroy"}
-				r.create {"album create"}
-				r.edit {|id| "album #{id} edit"}
-				r.new {"album new"}
+			r.resource :albums do |rsc|
+				rsc.list   { |params| Album.find(params)  }
+				rsc.one    { |params| Album[params['id']] 	}
+				rsc.delete { |params| Album[params['id']].destroy }
+				rsc.save   { |atts| Album.create_or_update(atts)  }
+			end
+			r.resource :artists, primary_key: 'artist_id' do |rsc|
+				rsc.list   { |params| Artist.find(params)  }
+				rsc.one    { |params| Artist[params['artist_id']]	 	}
+				rsc.routes :index, :show
+				r.destroy do
+					'destroy artist'
+				end
 			end
 		end
 	end
 
-	def test_index_no_slash
-		assert_equal 'album index', body('/albums')
+	def test_index
+		assert_equal Album.find({}).to_json, body('/albums')
 	end
 
-	def test_index_slash
-		assert_equal 'album index', body('/albums/')
+	def test_index_with_params
+		assert_equal Album.find({'page' => 3}).to_json, body('/albums', {'QUERY_STRING' => 'page=3'})
 	end
 
 	def test_show
-		assert_equal 'album 12 show', body('/albums/12')
+		assert_equal Album[12].to_json, body('/albums/12')
 	end
-
-	def test_create_no_slash
-		assert_equal 'album create', body('/albums', {'REQUEST_METHOD' => 'POST'})
+	
+	def test_notfound
+		assert_equal 404, status('/albums/13')
 	end
-
-	def test_create_slash
-		assert_equal 'album create', body('/albums/', {'REQUEST_METHOD' => 'POST'})
+	
+	
+	def test_create
+		name = 'bar'
+		album = Album.new(1, name)
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
 	end
 
 	def test_update_patch
-		assert_equal 'album 12 update', body('/albums/12', {'REQUEST_METHOD' => 'PATCH'})
+		id, name = 12, 'foo'
+		album = Album.new(id, name)
+		assert_equal album.to_json, body('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => {id: id, name: name}.to_json})
+		assert_equal album.to_json, body('/albums/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => {id: id, name: name}.to_json})
 	end
-
-	def test_update_put
-		assert_equal 'album 12 update', body('/albums/12', {'REQUEST_METHOD' => 'PUT'})
+	
+	def test_destroy
+		assert_equal '', body('/albums/12', {'REQUEST_METHOD' => 'DELETE'})
+		assert_equal 204, status('/albums/12', {'REQUEST_METHOD' => 'DELETE'})
 	end
-
+	
 	def test_edit
-		assert_equal 'album 12 edit', body('/albums/12/edit')
+		assert_equal Album[12].to_json, body('/albums/12/edit')
 	end
 
 	def test_new
-		assert_equal 'album new', body('/albums/new')
+		assert_equal Album.new.to_json, body('/albums/new')
+	end
+	
+	def test_album_show_status
+		assert_equal 200, status('/albums/12')
 	end
 
-	def test_fail
-		assert_equal 404, status('/albumss')
+	def test_undefined_path
+		assert_equal 404, status('/albums/list')
+	end
+
+
+	def test_artist_index
+		assert_equal Artist.find({}).to_json, body('/artists')
+	end
+	
+	def test_artist_show
+		assert_equal Artist[12].to_json, body('/artists/12')
+	end
+
+	def test_artist_show_status
+		assert_equal 200, status('/artists/12')
+	end
+	
+	def test_artist_custom_destroy
+		assert_equal 'destroy artist', body('/artists/12', {'REQUEST_METHOD' => 'DELETE'})
+	end
+
+	
+	def test_artist_not_found_method
+		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'FOO'})
+	end
+
+	def test_artist_not_found_path
+		assert_equal 404, status('/artistss')
 	end
 
 end

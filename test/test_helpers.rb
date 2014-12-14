@@ -47,4 +47,57 @@ module TestHelpers
 		c.class_eval(&block)
 		c
 	end
+	
+	class Mock
+	
+		attr_accessor :id, :name
+	
+		def self.find(params)
+			if params['page']
+				[new(1, ' ')]
+			else
+				[new(1, 'foo'), new(2, 'bar')]
+			end
+		end
+	
+		def self.create_or_update(atts)
+			if id = atts.delete('id')
+				self[id].update(atts)
+			else
+				self.new(1, atts['name'])
+			end
+		end
+	
+		def self.[](id)
+			if id
+				if id.to_i > 12
+					raise
+				end
+				id == 'new' ? new : new(id.to_i)
+			end
+		end
+	
+		def initialize(id = nil, name = nil)
+			@id = id
+			@name = name
+		end
+	
+		def update(atts)
+			self.name = atts['name']
+			self
+		end
+	
+		def destroy
+			''
+		end
+	
+		def to_json(state = nil)
+			{id: @id, name: @name}.to_json(state)
+		end
+	
+	end
+	
+	class Album < Mock ; end
+	class Artist < Mock ; end
+	
 end
