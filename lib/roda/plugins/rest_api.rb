@@ -110,7 +110,7 @@ class Roda
 
 			  def destroy(options={}, &block)
 					block ||= default_block(:delete)
-			  		delete(path, options) do
+			  	delete(path, options) do
 						response.status = 204
 						block.call(*captures) if block
 					end
@@ -125,7 +125,7 @@ class Roda
 				  block ||= ->{@resource.perform(:one, "new")}
 					get("new", options, &block)
 			  end
-			 
+				
 			  private
 			  
 			  def path(path=nil)
@@ -156,9 +156,7 @@ class Roda
 					end
 			  end
 			  
-
 			end
-
 		end
 
 		register_plugin(:rest_api, RestApi)
