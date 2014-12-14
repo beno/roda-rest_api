@@ -46,11 +46,14 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
 	end
 	
-	
 	def test_create_error
 		assert_equal 422, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => "illegal"})
 	end
 
+	def test_update_error
+		assert_equal 422, status('/albums/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => "illegal"})
+		assert_equal 422, status('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => "illegal"})
+	end
 
 	def test_update_patch
 		id, name = 12, 'foo'
@@ -80,7 +83,6 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		assert_equal 404, status('/albums/list')
 	end
 
-
 	def test_artist_index
 		assert_equal Artist.find({}).to_json, body('/artists')
 	end
@@ -101,8 +103,8 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		assert_raises(NotImplementedError) { body('/artists', {'REQUEST_METHOD' => 'POST', 'rack.input' => {'name' => 'foo'}.to_json }) }
 	end
 	
-	def test_artist_not_found_method
-		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'PUT'})
+	def test_artist_method_not_defined
+		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => {'name' => 'foo'}.to_json })
 	end
 
 	def test_artist_not_found_path

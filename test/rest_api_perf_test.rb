@@ -1,7 +1,7 @@
 require "test_helpers"
 require "minitest/benchmark"
 
-class RestApiSerialzieTest < MiniTest::Unit::TestCase
+class RestApiPerformanceTest < MiniTest::Unit::TestCase
 	include TestHelpers
 
 
