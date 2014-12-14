@@ -1,11 +1,48 @@
-roda-rest-api
+Roda plugin for RESTful APIs
 =============
 
-Roda plugin for RESTful APIs
+### Quick start
 
-Run tests with
+Install gem with
 
-    bundle exec rake test
+    gem 'roda-rest_api'          #Gemfile
+
+or
+
+    gem install roda-rest_api    #Manual
+
+Create rack app 
+
+```ruby
+#api.ru
+
+require 'roda/rest_api'
+require 'json'
+
+class App < Roda
+  route do |r|
+    r.api do
+      r.version 3 do
+        r.resource :things do |rsc|
+          rsc.list {|param| ['foo', 'bar']}
+          rsc.routes :index
+        end
+      end
+    end
+  end
+end
+
+run App
+```
+    
+And run with
+
+    bundle exec rackup api.ru
+
+Try it out on:
+
+    curl http://localhost:9292/api/v3/things
+
 
 ### Usage
 

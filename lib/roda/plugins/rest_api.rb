@@ -64,7 +64,7 @@ class Roda
 				end
 
 			end
-
+			
 			module RequestMethods
 
 				def api(options={}, &block)
@@ -93,7 +93,7 @@ class Roda
 			  end
 
 			  def show(options={}, &block)
-				  path, block = path_and_block(:one, nil, &block)
+				  block ||= default_block(:one)
 				  	get(path, options, &block)
 			  end
 
@@ -103,13 +103,13 @@ class Roda
 			  end
 
 			  def update(options={}, &block)
-				  path, block = path_and_block(:save, nil, &block)
+					block ||= default_block(:save)
 				  options.merge!(method: [:put, :patch])
 			  		is(path, options, &block)
 			  end
 
 			  def destroy(options={}, &block)
-				  path, block = path_and_block(:delete, nil, &block)
+					block ||= default_block(:delete)
 			  		delete(path, options) do
 						response.status = 204
 						block.call(*captures) if block
@@ -117,8 +117,8 @@ class Roda
 			  end
 
 			  def edit(options={}, &block)
-				  path, block = path_and_block(:one, "edit", &block)
-			  		get(path, options, &block)
+					block ||= default_block(:one)
+			  		get(path("edit"), options, &block)
 			  end
 
 			  def new(options={}, &block)
@@ -128,15 +128,21 @@ class Roda
 			  			  
 			  private
 			  
-			  def path_and_block(method, path = nil, &block)
+			  def path(path=nil)
 				  if @resource.singleton
-					  block ||= ->(){@resource.perform(method)}
-					  path = ["", true] unless path
+						path = ["", true] unless path
 					else
-						block ||= ->(id){@resource.perform(method, id)}
 						path = [":d", path].compact.join("/")
 					end
-					[path, block]
+					path
+				end
+				
+				def default_block(method)
+					if @resource.singleton
+						->(){@resource.perform(method)}
+					else
+						->(id){@resource.perform(method, id)}
+					end
 				end
 			  
 			  CONTENT_TYPE = 'Content-Type'.freeze

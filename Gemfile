@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'roda'
-gem 'sequel'
 
-gem 'rake'
-gem 'minitest'
+group :test, :development do
+	gem 'rake'
+	gem 'minitest'
+end

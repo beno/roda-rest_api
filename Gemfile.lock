@@ -6,7 +6,6 @@ GEM
     rake (10.1.0)
     roda (1.1.0)
       rack
-    sequel (4.17.0)
 
 PLATFORMS
   ruby
@@ -15,4 +14,3 @@ DEPENDENCIES
   minitest
   rake
   roda
-  sequel
