@@ -71,7 +71,7 @@ module TestHelpers
 		def self.[](id)
 			if id
 				if id.to_i > 12
-					raise
+					raise DBNotFoundError
 				end
 				id == 'new' ? new : new(id.to_i)
 			end
@@ -99,5 +99,7 @@ module TestHelpers
 	
 	class Album < Mock ; end
 	class Artist < Mock ; end
+	
+	class DBNotFoundError < StandardError ; end
 	
 end

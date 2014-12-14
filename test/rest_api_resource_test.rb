@@ -14,7 +14,7 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 			r.resource :artists, primary_key: 'artist_id' do |rsc|
 				rsc.list   { |params| Artist.find(params)  }
 				rsc.one    { |params| Artist[params['artist_id']]	 	}
-				rsc.routes :index, :show
+				rsc.routes :index, :show, :create
 				r.destroy do
 					'destroy artist'
 				end
@@ -94,12 +94,15 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 	end
 	
 	def test_artist_custom_destroy
-		assert_equal 'destroy artist', body('/artists/12', {'REQUEST_METHOD' => 'DELETE'})
+		assert_equal 'destroy artist', body('/artists/12', {'REQUEST_METHOD' => 'DELETE'} )
 	end
 
+	def test_artist_not_implemented
+		assert_raises(NotImplementedError) { body('/artists', {'REQUEST_METHOD' => 'POST', 'rack.input' => {'name' => 'foo'}.to_json }) }
+	end
 	
 	def test_artist_not_found_method
-		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'FOO'})
+		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'PUT'})
 	end
 
 	def test_artist_not_found_path
