@@ -8,7 +8,7 @@ class RestApiSingletonTest < Minitest::Unit::TestCase
 			r.resource :profile, singleton: true do |rsc|
 				rsc.one { |params| Profile[params['id'] || 12]}
 				rsc.save { |atts| Profile.create_or_update(atts) }
-				rsc.delete { |params| Profile[23].destroy	}
+				rsc.delete { |params| Profile[12].destroy	}
 			end
 		end
 	end

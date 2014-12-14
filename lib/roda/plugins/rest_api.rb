@@ -1,17 +1,6 @@
 class Roda
 	module RodaPlugins
 
-		module HeaderMatchers
-			module RequestMethods
-
-				private
-
-				def match_subdomain(subdomain)
-					host.match /^#{subdomain}\./
-				end
-			end
-		end
-
 		module RestApi
 
 			def self.load_dependencies(app, _opts = {})
@@ -79,8 +68,10 @@ class Roda
 			module RequestMethods
 
 				def api(options={}, &block)
-					api_path = options.delete(:path) || 'api'
-					on([api_path, true], options, &block)
+					path = options.delete(:path) || 'api'
+					subdomain = options.delete(:subdomain)
+					options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
+					on([path, true], options, &block)
 				end
 
 				def version(version, &block)
@@ -121,8 +112,8 @@ class Roda
 				  path, block = path_and_block(:delete, nil, &block)
 			  		delete(path, options) do
 						response.status = 204
-				  		yield if block_given?
-				  	end
+						block.call(*captures) if block
+					end
 			  end
 
 			  def edit(options={}, &block)
