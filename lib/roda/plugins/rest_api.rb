@@ -26,10 +26,9 @@ class Roda
 
 				attr_reader :singleton, :primary_key, :content_type
 				
-				def initialize(name, request, options={})
-					@name = name.to_s
-					@singleton = options.delete(:singleton) || false
+				def initialize(request, options={})
 					@request = request
+					@singleton = options.delete(:singleton) || false
 					@primary_key = options.delete(:primary_key) || "id"
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
 				end
@@ -89,7 +88,7 @@ class Roda
 			  end
 
 			  def resource(name, options={})
-					@resource = Resource.new(name, self, options)
+					@resource = Resource.new(self, options)
 			  		on(name.to_s, options) do
 				  		yield @resource
 				  		@resource.routes!
