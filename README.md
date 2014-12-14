@@ -28,11 +28,11 @@ route do |r|
       r.resource :artists, content_type: 'application/xml' do |rsc|
         rsc.list   { |params| Artist.where(params) }
         rsc.one    { |params| Artist.find(params['id'])  }
-        rsc.serialize { |result| AlbumSerializer.xml(result) }
+        rsc.serialize { |result| ArtistSerializer.xml(result) }
         rsc.routes :index, :show
       end
       
-      #define 6 singleton routes 
+      #define 6 singleton routes
       
       r.resource :profile, singleton: true do |rsc|
         rsc.one     { |params| current_user.profile  }                      #show, edit, new
