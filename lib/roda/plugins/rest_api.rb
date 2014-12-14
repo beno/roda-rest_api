@@ -50,7 +50,7 @@ class Roda
 				def routes(*routes)
 					@routes = routes
 				end
-										
+				
 				def routes!
 					@routes = %i{ index show create update destroy edit new } unless @routes
 					@routes.delete :index if @singleton
@@ -75,17 +75,17 @@ class Roda
 				end
 
 				def version(version, &block)
-			  		on("v#{version}", &block)
-			  end
+			  	on("v#{version}", &block)
+				end
 
-			  def resource(name, options={})
+				def resource(name, options={})
 					@resource = Resource.new(self, options)
-			  		on(name.to_s, options) do
-				  		yield @resource
-				  		@resource.routes!
-				  		response.status = 404
-				  	end
-			  end
+					on(name.to_s, options) do
+						yield @resource
+				  	@resource.routes!
+				  	response.status = 404
+				  end
+				end
 
 			  def index(options={}, &block)
 				  block ||= ->{ @resource.perform(:list) }
@@ -94,18 +94,18 @@ class Roda
 
 			  def show(options={}, &block)
 				  block ||= default_block(:one)
-				  	get(path, options, &block)
+					get(path, options, &block)
 			  end
 
 			  def create(options={}, &block)
-				  block ||= ->{@resource.perform(:save)}
-			  		post(["", true], options, &block)
+				 	block ||= ->{@resource.perform(:save)}
+					post(["", true], options, &block)
 			  end
 
 			  def update(options={}, &block)
 					block ||= default_block(:save)
 				  options.merge!(method: [:put, :patch])
-			  		is(path, options, &block)
+					is(path, options, &block)
 			  end
 
 			  def destroy(options={}, &block)
@@ -118,14 +118,14 @@ class Roda
 
 			  def edit(options={}, &block)
 					block ||= default_block(:one)
-			  		get(path("edit"), options, &block)
+					get(path("edit"), options, &block)
 			  end
 
 			  def new(options={}, &block)
 				  block ||= ->{@resource.perform(:one, "new")}
-			  		get("new", options, &block)
+					get("new", options, &block)
 			  end
-			  			  
+			 
 			  private
 			  
 			  def path(path=nil)
