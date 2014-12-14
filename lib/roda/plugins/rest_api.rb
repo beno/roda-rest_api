@@ -3,6 +3,9 @@ class Roda
 
 		module RestApi
 
+			APPLICATION_JSON = 'application/json'.freeze
+			SINGLETON_ROUTES = %i{ show create update destroy edit new }.freeze
+
 			def self.load_dependencies(app, _opts = {})
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
@@ -11,7 +14,6 @@ class Roda
 			
 			class Resource
 				
-				APPLICATION_JSON = 'application/json'.freeze
 
 				attr_reader :singleton, :content_type
 				
@@ -21,7 +23,7 @@ class Roda
 					@primary_key = options.delete(:primary_key) || "id"
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
 				end
-				
+								
 				def list(&block)
 					@list = block if block
 					@list || ->(_){raise NotImplementedError, "list"}
@@ -52,8 +54,10 @@ class Roda
 				end
 				
 				def routes!
-					@routes = %i{ index show create update destroy edit new } unless @routes
-					@routes.delete :index if @singleton
+					unless @routes
+						@routes = SINGLETON_ROUTES.dup
+						@routes << :index unless @singleton
+					end
 					@routes.each { |route| @request.send(route) }
 				end
 				
@@ -67,6 +71,7 @@ class Roda
 					end
 				end
 
+
 			end
 			
 			module RequestMethods
@@ -79,7 +84,7 @@ class Roda
 				end
 
 				def version(version, &block)
-			  	on("v#{version}", &block)
+			  		on("v#{version}", &block)
 				end
 
 				def resource(name, options={})
