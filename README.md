@@ -41,7 +41,7 @@ And run with
 
 Try it out on:
 
-    curl http://localhost:9292/api/v3/things
+    curl http://127.0.0.1:9292/api/v3/things
 
 
 ### Usage
