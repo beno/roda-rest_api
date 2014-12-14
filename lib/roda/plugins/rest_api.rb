@@ -58,9 +58,13 @@ class Roda
 				end
 				
 				def perform(method, id = nil)
-					args = method === :save ? JSON.parse(@request.body) : @request.GET
-					args.merge!(@primary_key => id) if id
-					self.send(method).call(args) rescue @request.response.status = 404
+					begin
+						args = method === :save ? JSON.parse(@request.body) : @request.GET
+						args.merge!(@primary_key => id) if id
+						self.send(method).call(args)
+					rescue StandardError => e
+						@request.response.status = method === :save ? 422 : 404
+					end
 				end
 
 			end
@@ -100,10 +104,10 @@ class Roda
 			  def create(options={}, &block)
 				 	block ||= ->{@resource.perform(:save)}
 					post(["", true], options) do
- 						response.status = 201
- 						block.call(*captures) if block
- 					end
- 				end
+						response.status = 201
+						block.call(*captures) if block
+					end
+			  end
 
 			  def update(options={}, &block)
 					block ||= default_block(:save)

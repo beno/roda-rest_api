@@ -45,6 +45,12 @@ class RestApiResourceTest < Minitest::Unit::TestCase
 		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
 		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
 	end
+	
+	
+	def test_create_error
+		assert_equal 422, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => "illegal"})
+	end
+
 
 	def test_update_patch
 		id, name = 12, 'foo'
