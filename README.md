@@ -23,9 +23,9 @@ class App < Roda
   route do |r|
     r.api do
       r.version 3 do
-        r.resource :things do |rsc|
-          rsc.list {|param| ['foo', 'bar']}
-          rsc.routes :index
+        r.resource :things do |things|
+          things.list {|param| ['foo', 'bar']}
+          things.routes :index
         end
       end
     end
@@ -48,33 +48,48 @@ Try it out on:
 
 ```ruby
 route do |r|
-  r.api path:'', subdomain:'api' do   # 'mount' API on api.example.com/v1/..., default is /api/v1/...
+  r.api path:'', subdomain:'api' do   # 'mount' API on api.example.com/v1/...
     r.version 1 do
 
-      #define all 7 routes
+      #define all 7 routes:
+      # index   - GET /v1/songs
+      # show    - GET /v1/songs/:id
+      # create  - POST /v1/songs
+      # update  - PUT | PATCH /v1/songs/:id
+      # destroy - DELETE /v1/songs/:id
+      # edit    - GET /v1/songs/:id/edit
+      # new     - GET /v1/songs/new
       
-      r.resource :songs do |rsc|
-        rsc.list   { |params| Song.find(params) }            #index
-        rsc.one    { |params| Song[params['id']]  }          #show, edit, new
-        rsc.delete { |params| Song[params['id']].destroy }   #destroy
-        rsc.save   { |attrs|  Song.create_or_update(attrs) } #create, update
+      r.resource :songs do |songs|
+        songs.list   { |params| Song.find(params) }            #index
+        songs.one    { |params| Song[params['id']]  }          #show, edit, new
+        songs.delete { |params| Song[params['id']].destroy }   #destroy
+        songs.save   { |atts|  Song.create_or_update(atts) }  #create, update
       end
 
-      #define 2 routes and custom serializer, custom primary key
+      #define 2 routes and custom serializer, custom primary key:
+      # index   - GET /v1/artists
+      # show    - GET /v1/artists/:id
 
-      r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |rsc|
-        rsc.list   { |params| Artist.where(params) }
-        rsc.one    { |params| Artist.find(params['artist_id'])  }
-        rsc.serialize { |result| ArtistSerializer.xml(result) }
-        rsc.routes :index, :show
+      r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |artists|
+        artists.list      { |params| Artist.where(params) }
+        artists.one       { |params| Artist.find(params['artist_id'])  }
+        artists.serialize { |result| ArtistSerializer.xml(result) }
+        artists.routes :index, :show
       end
       
-      #define 6 singleton routes
+      #define 6 singleton routes:
+      # show    - GET /v1/profile
+      # create  - POST /v1/profile
+      # update  - PUT | PATCH /v1/profile
+      # destroy - DELETE /v1/profile
+      # edit    - GET /v1/profile/edit
+      # new     - GET /v1/profile/new
       
-      r.resource :profile, singleton: true do |rsc|
-        rsc.one     { |params| current_user.profile  }                      #show, edit, new
-        rsc.save    { |atts| current_user.profile.create_or_update(atts)  } #create, update
-        rsc.delete  { |params| current_user.profile.destroy  }              #destroy
+      r.resource :profile, singleton: true do |profile|
+        profile.one     { |params| current_user.profile  }                      #show, edit, new
+        profile.save    { |atts| current_user.profile.create_or_update(atts)  } #create, update
+        profile.delete  { |params| current_user.profile.destroy  }              #destroy
       end
       
       #define custom routes
