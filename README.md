@@ -154,4 +154,4 @@ end
 
 ### Caveat
 
-This plugin catches StandardError when performing the data access methods (list, one, save, delete) and will return a 404 or 422 response code when an error is thrown. This can be cumbersome development, therefore you should develop and test your data access methods in isolation. This is good practice anyway.
+This plugin catches StandardError when performing the data access methods (list, one, save, delete) and will return a 404 or 422 response code when an error is thrown. This can be cumbersome in development, therefore you should develop and test your data access methods in isolation. This is good practice anyway.
