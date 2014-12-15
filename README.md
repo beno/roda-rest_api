@@ -61,7 +61,7 @@ route do |r|
       # new     - GET /v1/songs/new
       
       r.resource :songs do |songs|
-        songs.list   { |params| Song.find(params) }            #index
+        songs.list   { |params| Song.where(params).all }            #index
         songs.one    { |params| Song[params['id']]  }          #show, edit, new
         songs.delete { |params| Song[params['id']].destroy }   #destroy
         songs.save   { |atts|  Song.create_or_update(atts) }  #create, update
@@ -72,7 +72,7 @@ route do |r|
       # show    - GET /v1/artists/:id
 
       r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |artists|
-        artists.list      { |params| Artist.where(params) }
+        artists.list      { |params| Artist.where(params).all }
         artists.one       { |params| Artist.find(params['artist_id'])  }
         artists.serialize { |result| ArtistSerializer.xml(result) }
         artists.routes :index, :show
@@ -102,20 +102,20 @@ route do |r|
       # show    - GET /v1/albums/favorites/:id
       
       r.resource :albums do |albums|
-        albums.list   { |params| Album.find(params)  }
+        albums.list   { |params| Album.where(params).all  }
         albums.one    { |params| Album[params['id']] 	}
         albums.routes :index, :show
         r.resource :songs do |songs|
-          songs.list { |params| Song.find({ 'album_id' => params['parent_id'] }) }
+          songs.list { |params| Song.where({ 'album_id' => params['parent_id'] }) }
           songs.one   { |params| Song[params['id']] 	}
           songs.routes :index, :show
         end
         r.resource :artwork, parent_key: 'album_id' do |artwork|
-          artwork.list { |params| Artwork.find({ 'album_id' => params['album_id'] }) }
+          artwork.list { |params| Artwork.where({ 'album_id' => params['album_id'] }).all }
           artwork.routes :index
         end
         r.resource :favorites, bare: true do |favorites|
-          favorites.list   { |params| Favorite.find(params)  }
+          favorites.list   { |params| Favorite.where(params).all  }
           favorites.one   { |params| Favorite[params['id'] )  }
           favorites.routes :index, :show
         end
