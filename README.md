@@ -91,6 +91,35 @@ route do |r|
         profile.save    { |atts| current_user.profile.create_or_update(atts)  } #create, update
         profile.delete  { |params| current_user.profile.destroy  }              #destroy
       end
+
+      #nested routes
+      # index   - GET /v1/albums
+      # show    - GET /v1/albums/:id
+      # index   - GET /v1/albums/:parent_id/songs
+      # show    - GET /v1/albums/:parent_id/songs/:id
+      # index   - GET /v1/albums/:album_id/artwork
+      # index   - GET /v1/albums/favorites
+      # show    - GET /v1/albums/favorites/:id
+      
+      r.resource :albums do |albums|
+        albums.list   { |params| Album.find(params)  }
+        albums.one    { |params| Album[params['id']] 	}
+        albums.routes :index, :show
+        r.resource :songs do |songs|
+          songs.list { |params| Song.find({ 'album_id' => params['parent_id'] }) }
+          songs.one   { |params| Song[params['id']] 	}
+          songs.routes :index, :show
+        end
+        r.resource :artwork, parent_key: 'album_id' do |artwork|
+          artwork.list { |params| Artwork.find({ 'album_id' => params['album_id'] }) }
+          artwork.routes :index
+        end
+        r.resource :favorites, bare: true do |favorites|
+          favorites.list   { |params| Favorite.find(params)  }
+          favorites.one   { |params| Favorite[params['id'] )  }
+          favorites.routes :index, :show
+        end
+      end
       
       #define custom routes
       

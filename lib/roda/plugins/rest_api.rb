@@ -14,14 +14,22 @@ class Roda
 			
 			class Resource
 				
-
-				attr_reader :singleton, :content_type
+				attr_reader :request, :path, :singleton, :content_type, :parent, :captures
 				
-				def initialize(request, options={})
+				def initialize(path, request, parent, options={})
 					@request = request
+					@path = path.to_s
+					bare = options.delete(:bare) || false
 					@singleton = options.delete(:singleton) || false
 					@primary_key = options.delete(:primary_key) || "id"
+					@parent_key = options.delete(:parent_key) || "parent_id"
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
+					if parent && !@request.script_name.empty?
+						@parent = parent
+						@parent.routes!
+						@captures = @request.captures.dup
+						@path = [':d', @path].join('/') unless bare
+					end
 				end
 								
 				def list(&block)
@@ -52,7 +60,7 @@ class Roda
 				def routes(*routes)
 					@routes = routes
 				end
-				
+								
 				def routes!
 					unless @routes
 						@routes = SINGLETON_ROUTES.dup
@@ -65,17 +73,17 @@ class Roda
 					begin
 						args = method === :save ? JSON.parse(@request.body) : @request.GET
 						args.merge!(@primary_key => id) if id
+						args.merge!(@parent_key => @captures[0]) if @parent && !@captures.empty?
 						self.send(method).call(args)
 					rescue StandardError => e
 						@request.response.status = method === :save ? 422 : 404
 					end
 				end
 
-
 			end
 			
 			module RequestMethods
-
+				
 				def api(options={}, &block)
 					path = options.delete(:path) || 'api'
 					subdomain = options.delete(:subdomain)
@@ -87,13 +95,14 @@ class Roda
 			  		on("v#{version}", &block)
 				end
 
-				def resource(name, options={})
-					@resource = Resource.new(self, options)
-					on(name.to_s, options) do
+				def resource(path, options={})
+					@resource = Resource.new(path, self, @resource, options)
+					on(@resource.path, options) do
 						yield @resource
-				  	@resource.routes!
-				  	response.status = 404
+				 		@resource.routes!
+						response.status = 404
 				  end
+				 	@resource = @resource.parent
 				end
 
 			  def index(options={}, &block)

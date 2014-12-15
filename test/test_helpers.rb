@@ -53,8 +53,8 @@ module TestHelpers
 		attr_accessor :id, :name
 	
 		def self.find(params)
-			if params['page']
-				[new(1, ' ')]
+			if params['page'] || params['album_id']
+				[new(1, 'filtered' + params['album_id'].to_s )]
 			else
 				[new(1, 'foo'), new(2, 'bar')]
 			end
@@ -62,7 +62,7 @@ module TestHelpers
 	
 		def self.create_or_update(atts)
 			if id = atts.delete('id')
-				self[id].update(atts)
+				self[id].save(atts)
 			else
 				self.new(1, atts['name'])
 			end
@@ -73,7 +73,7 @@ module TestHelpers
 				if id.to_i > 12
 					raise DBNotFoundError
 				end
-				id == 'new' ? new : new(id.to_i)
+				id == 'new' ? new : new(id.to_i, name: 'foo')
 			end
 		end
 	
@@ -82,7 +82,7 @@ module TestHelpers
 			@name = name
 		end
 	
-		def update(atts)
+		def save(atts)
 			self.name = atts['name']
 			self
 		end
@@ -92,7 +92,7 @@ module TestHelpers
 		end
 	
 		def to_json(state = nil)
-			{id: @id, name: @name}.to_json(state)
+			{id: @id, name: @name, class: self.class.name }.to_json(state)
 		end
 	
 	end
