@@ -43,13 +43,9 @@ class RestApiNestedTest < Minitest::Unit::TestCase
 		settings = Settings.new(id, name)
 		assert_equal settings.to_json, body('/albums/12/settings', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => {name: name}.to_json})
 	end
-	
+	#
 	def test_favorites_index
 		assert_equal Favorite.find({}).to_json, body('/albums/favorites')
-	end
-	
-	def test_favorites_show
-		assert_equal Favorite[7].to_json, body('/albums/favorites/7')
 	end
 	
 	def test_favorites_show
@@ -59,7 +55,7 @@ class RestApiNestedTest < Minitest::Unit::TestCase
 	def test_filtered_default
 		assert_equal Song.find({'album_id' => 9 }).to_json, body('/albums/9/songs')
 	end
-
+	
 	def test_filtered_custom
 		assert_equal Artwork.find({'album_id' => 8 }).to_json, body('/albums/8/artwork')
 	end

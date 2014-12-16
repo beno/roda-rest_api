@@ -27,7 +27,7 @@ class Roda
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
 					if parent
 						@parent = parent
-						@parent.routes!
+						@parent.routes! if @request.path_info.split('/') == 2
 						@path = [':d', @path].join('/') unless bare
 					end
 				end
@@ -101,7 +101,7 @@ class Roda
 					on(@resource.path, options) do
 						@resource.captures = captures.dup unless captures.empty?
 						yield @resource
-				 		@resource.routes!
+					 	@resource.routes!
 						response.status = 404
 				  end
 				 	@resource = @resource.parent
