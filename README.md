@@ -20,6 +20,9 @@ require 'roda/rest_api'
 require 'json'
 
 class App < Roda
+  
+  plugin :rest_api
+  
   route do |r|
     r.api do
       r.version 3 do
@@ -48,7 +51,7 @@ Try it out on:
 
 ```ruby
 route do |r|
-  r.api path:'', subdomain:'api' do   # 'mount' API on api.example.com/v1/...
+  r.api path:'', subdomain:'api' do   # 'mount' on api.example.com/v1/...
     r.version 1 do
 
       #define all 7 routes:
@@ -93,8 +96,6 @@ route do |r|
       end
 
       #nested routes
-      # index   - GET /v1/albums
-      # show    - GET /v1/albums/:id
       # index   - GET /v1/albums/:parent_id/songs
       # show    - GET /v1/albums/:parent_id/songs/:id
       # index   - GET /v1/albums/:album_id/artwork
@@ -102,12 +103,9 @@ route do |r|
       # show    - GET /v1/albums/favorites/:id
       
       r.resource :albums do |albums|
-        albums.list   { |params| Album.where(params).all  }
-        albums.one    { |params| Album[params['id']] 	}
-        albums.routes :index, :show
         r.resource :songs do |songs|
           songs.list { |params| Song.where({ 'album_id' => params['parent_id'] }) }
-          songs.one   { |params| Song[params['id']] 	}
+          songs.one  { |params| Song[params['id']] 	}
           songs.routes :index, :show
         end
         r.resource :artwork, parent_key: 'album_id' do |artwork|
@@ -115,7 +113,7 @@ route do |r|
           artwork.routes :index
         end
         r.resource :favorites, bare: true do |favorites|
-          favorites.list   { |params| Favorite.where(params).all  }
+          favorites.list  { |params| Favorite.where(params).all  }
           favorites.one   { |params| Favorite[params['id'] )  }
           favorites.routes :index, :show
         end
