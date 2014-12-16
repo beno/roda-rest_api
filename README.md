@@ -76,7 +76,7 @@ route do |r|
 
       r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |artists|
         artists.list      { |params| Artist.where(params).all }
-        artists.one       { |params| Artist.find(params['artist_id'])  }
+        artists.one       { |params| Artist[params['artist_id']]  }
         artists.serialize { |result| ArtistSerializer.xml(result) }
         artists.routes :index, :show
       end
@@ -114,7 +114,7 @@ route do |r|
         end
         r.resource :favorites, bare: true do |favorites|
           favorites.list  { |params| Favorite.where(params).all  }
-          favorites.one   { |params| Favorite[params['id'] )  }
+          favorites.one   { |params| Favorite[params['id']] )  }
           favorites.routes :index, :show
         end
       end
