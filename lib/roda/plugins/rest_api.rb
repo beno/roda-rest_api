@@ -14,7 +14,8 @@ class Roda
 			
 			class Resource
 				
-				attr_reader :request, :path, :singleton, :content_type, :parent, :captures
+				attr_reader :request, :path, :singleton, :content_type, :parent
+				attr_accessor :captures
 				
 				def initialize(path, request, parent, options={})
 					@request = request
@@ -24,10 +25,9 @@ class Roda
 					@primary_key = options.delete(:primary_key) || "id"
 					@parent_key = options.delete(:parent_key) || "parent_id"
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
-					if parent && !@request.script_name.empty?
+					if parent
 						@parent = parent
 						@parent.routes!
-						@captures = @request.captures.dup
 						@path = [':d', @path].join('/') unless bare
 					end
 				end
@@ -73,9 +73,10 @@ class Roda
 					begin
 						args = method === :save ? JSON.parse(@request.body) : @request.GET
 						args.merge!(@primary_key => id) if id
-						args.merge!(@parent_key => @captures[0]) if @parent && !@captures.empty?
+						args.merge!(@parent_key => @captures[0]) if @captures
 						self.send(method).call(args)
 					rescue StandardError => e
+						raise if ENV['RACK_ENV'] == 'development'
 						@request.response.status = method === :save ? 422 : 404
 					end
 				end
@@ -98,6 +99,7 @@ class Roda
 				def resource(path, options={})
 					@resource = Resource.new(path, self, @resource, options)
 					on(@resource.path, options) do
+						@resource.captures = captures.dup unless captures.empty?
 						yield @resource
 				 		@resource.routes!
 						response.status = 404

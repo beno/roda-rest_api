@@ -6,9 +6,6 @@ class RestApiNestedTest < Minitest::Unit::TestCase
 	def setup
 		app :rest_api do |r|
 			r.resource :albums do |albums|
-				albums.list   { |params| Album.find(params)  }
-				albums.one    { |params| Album[params['id']] 	}
-				albums.routes :index, :show
 				r.resource :songs do |songs|
 					songs.list { |params| Song.find({ 'album_id' => params['parent_id']} ) }
 					songs.one    { |params| Song[params['id']] 	}
@@ -32,15 +29,7 @@ class RestApiNestedTest < Minitest::Unit::TestCase
 
 		end
 	end
-	
-	def test_album_index
-		assert_equal Album.find({}).to_json, body('/albums')
-	end
-	
-	def test_album_show
-		assert_equal Album[12].to_json, body('/albums/12')
-	end
-	
+		
 	def test_songs_index
 		assert_equal Song.find({'album_id' => 12 }).to_json, body('/albums/12/songs')
 	end
