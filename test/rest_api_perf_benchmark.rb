@@ -1,7 +1,7 @@
 require "test_helpers"
 require "minitest/benchmark"
 
-class RestApiPerformanceTest < MiniTest::Unit::TestCase
+class RestApiPerformanceTest < Minitest::Benchmark
 	include TestHelpers
 
 	def setup

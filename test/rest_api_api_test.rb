@@ -1,6 +1,6 @@
 require "test_helpers"
 
-class RestApiApiTest < Minitest::Unit::TestCase
+class RestApiApiTest < Minitest::Test
 	include TestHelpers
 
 	def setup

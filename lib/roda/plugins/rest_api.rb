@@ -10,6 +10,7 @@ class Roda
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
 				app.plugin :header_matchers
+				app.plugin :static_path_info
 			end
 			
 			class Resource
@@ -27,7 +28,6 @@ class Roda
 					@content_type = options.delete(:content_type) || APPLICATION_JSON
 					if parent
 						@parent = parent
-						@parent.routes! if @request.path_info.split('/') == 2
 						@path = [':d', @path].join('/') unless bare
 					end
 				end
@@ -60,7 +60,7 @@ class Roda
 				def routes(*routes)
 					@routes = routes
 				end
-								
+					
 				def routes!
 					unless @routes
 						@routes = SINGLETON_ROUTES.dup

@@ -1,6 +1,6 @@
 require "test_helpers"
 
-class RestApiNestedTest < Minitest::Unit::TestCase
+class RestApiNestedTest < Minitest::Test
 	include TestHelpers
 	
 	def setup
@@ -85,6 +85,9 @@ class RestApiNestedTest < Minitest::Unit::TestCase
 		assert_equal Artwork.find({'album_id' => 8 }).to_json, body('/albums/8/artwork')
 	end
 
+	def test_deep_nest_fail
+		assert_equal 404, status('/albums/favorites/4/things/3')
+	end
 
 	def test_deep_nest
 		assert_equal Thing[3].to_json, body('/albums/favorites/4/things/3/edit')

@@ -1,6 +1,6 @@
 require "test_helpers"
 
-class RestApiSingletonTest < Minitest::Unit::TestCase
+class RestApiSingletonTest < Minitest::Test
 	include TestHelpers
 	
 	def setup
