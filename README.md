@@ -112,7 +112,7 @@ route do |r|
           songs.one  { |params| Song[params[:id]] 	}
           songs.routes :index, :show
         end
-        r.resource :artwork, parent_key: 'album_id' do |artwork|
+        r.resource :artwork, parent_key: :album_id do |artwork|
           artwork.list { |params| Artwork.where({ :album_id => params[:album_id] }).all }
           artwork.routes :index
         end
