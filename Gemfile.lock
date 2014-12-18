@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    roda-rest_api (1.2)
+    roda-rest_api (1.2.1)
       roda (~> 1.2)
 
 GEM
