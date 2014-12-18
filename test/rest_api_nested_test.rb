@@ -7,29 +7,30 @@ class RestApiNestedTest < Minitest::Test
 		app :rest_api do |r|
 			r.resource :albums do |albums|
 					albums.list { |params| Album.find({} ) }
-					albums.one    { |params| Album[params['id']] 	}
+					albums.one    { |params| Album[params[:id]] 	}
 					albums.routes :index, :show
 				r.resource :songs do |songs|
-					songs.list { |params| Song.find({ 'album_id' => params['parent_id']} ) }
-					songs.one    { |params| Song[params['id']] 	}
+					songs.list { |params| Song.find({ :album_id => params[:parent_id]} ) }
+					songs.one    { |params| Song[params[:id]] 	}
 					songs.routes :index, :show
 				end
 				r.resource :settings, singleton: true do |settings|
 					settings.one    { |params| Settings[3] 	}
 					settings.save    { |atts| Settings[3].save(atts) 	}
 					settings.routes :show, :update
+					settings.permit :name
 				end
-				r.resource :artwork, parent_key: 'album_id' do |artwork|
+				r.resource :artwork, parent_key: :album_id do |artwork|
 					artwork.list { |params| Artwork.find(params) }
 					artwork.routes :index
 				end
 				r.resource :favorites, bare: true do |favorites|
 					favorites.list   { |params| Favorite.find(params)  }
-					favorites.one    { |params| Favorite[params['id']] 	}
+					favorites.one    { |params| Favorite[params[:id]] 	}
 					favorites.routes :index, :show
 					r.resource :things do |things|
 						things.list   { |params| Thing.find(params)  }
-						things.one    { |params| Thing[params['id']] 	}
+						things.one    { |params| Thing[params[:id]] 	}
 						things.routes :index, :edit
 					end
 
@@ -52,7 +53,7 @@ class RestApiNestedTest < Minitest::Test
 	end
 	
 	def test_songs_index
-		assert_equal Song.find({'album_id' => 12 }).to_json, body('/albums/12/songs')
+		assert_equal Song.find({:album_id => 12 }).to_json, body('/albums/12/songs')
 	end
 	
 	def test_songs_show
@@ -78,11 +79,11 @@ class RestApiNestedTest < Minitest::Test
 	end
 	
 	def test_filtered_default
-		assert_equal Song.find({'album_id' => 9 }).to_json, body('/albums/9/songs')
+		assert_equal Song.find({:album_id => 9 }).to_json, body('/albums/9/songs')
 	end
 	
 	def test_filtered_custom
-		assert_equal Artwork.find({'album_id' => 8 }).to_json, body('/albums/8/artwork')
+		assert_equal Artwork.find({:album_id => 8 }).to_json, body('/albums/8/artwork')
 	end
 
 	def test_deep_nest_fail

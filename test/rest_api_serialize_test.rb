@@ -7,7 +7,7 @@ class RestApiSerializeTest < Minitest::Test
 		app :rest_api do |r|
 			r.resource :albums, content_type: 'text/xml' do |rsc|
 				rsc.list   { |params| Album.find(params)  }
-				rsc.one    { |params| Album[params['id']] 	}
+				rsc.one    { |params| Album[params[:id]] 	}
 				rsc.serialize { |result| result.is_a?(Enumerable) ? 'list xml' : 'one xml' }
 				rsc.routes :index, :show
 			end

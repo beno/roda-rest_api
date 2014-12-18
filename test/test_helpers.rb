@@ -50,21 +50,21 @@ module TestHelpers
 	
 	class Mock
 	
-		attr_accessor :id, :name
+		attr_accessor :id, :name, :price
 	
 		def self.find(params)
-			if params['page'] || params['album_id']
-				[new(1, 'filtered' + params['album_id'].to_s )]
+			if params[:page] || params[:album_id]
+				[new(1, 'filtered' + params[:album_id].to_s )]
 			else
 				[new(1, 'foo'), new(2, 'bar')]
 			end
 		end
 	
 		def self.create_or_update(atts)
-			if id = atts.delete('id')
+			if id = atts.delete(:id)
 				self[id].save(atts)
 			else
-				self.new(1, atts['name'])
+				self.new(1, atts[:name], atts[:price])
 			end
 		end
 	
@@ -77,13 +77,15 @@ module TestHelpers
 			end
 		end
 	
-		def initialize(id = nil, name = nil)
+		def initialize(id = nil, name = nil, price = nil)
 			@id = id
 			@name = name
+			@price = price
 		end
 	
 		def save(atts)
-			self.name = atts['name']
+			self.name = atts[:name]
+			self.price = atts[:price]
 			self
 		end
 	
@@ -92,7 +94,7 @@ module TestHelpers
 		end
 	
 		def to_json(state = nil)
-			{id: @id, name: @name, class: self.class.name }.to_json(state)
+			{id: @id, name: @name, price: @price, class: self.class.name }.to_json(state)
 		end
 	
 	end

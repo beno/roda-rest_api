@@ -7,13 +7,14 @@ class RestApiResourceTest < Minitest::Test
 		app :rest_api do |r|
 			r.resource :albums do |rsc|
 				rsc.list   { |params| Album.find(params)  }
-				rsc.one    { |params| Album[params['id']] 	}
-				rsc.delete { |params| Album[params['id']].destroy }
+				rsc.one    { |params| Album[params[:id]] 	}
+				rsc.delete { |params| Album[params[:id]].destroy }
 				rsc.save   { |atts| Album.create_or_update(atts)  }
+				rsc.permit :name
 			end
 			r.resource :artists, primary_key: 'artist_id' do |rsc|
 				rsc.list   { |params| Artist.find(params)  }
-				rsc.one    { |params| Artist[params['artist_id']]	 	}
+				rsc.one    { |params| Artist[params[:artist_id]]	 	}
 				rsc.routes :index, :show, :create
 				r.destroy do
 					'destroy artist'
@@ -55,7 +56,7 @@ class RestApiResourceTest < Minitest::Test
 		assert_equal 422, status('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => "illegal"})
 	end
 
-	def test_update_patch
+	def test_update_album
 		id, name = 12, 'foo'
 		album = Album.new(id, name)
 		assert_equal album.to_json, body('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => {id: id, name: name}.to_json})

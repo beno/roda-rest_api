@@ -63,20 +63,23 @@ route do |r|
       # edit    - GET /v1/songs/:id/edit
       # new     - GET /v1/songs/new
       
+      # call permit to whitelist allowed parameters (for both POST and GET requests)
+      
       r.resource :songs do |songs|
-        songs.list   { |params| Song.where(params).all }            #index
-        songs.one    { |params| Song[params['id']]  }          #show, edit, new
-        songs.delete { |params| Song[params['id']].destroy }   #destroy
+        songs.list   { |params| Song.where(params).all }      #index
+        songs.one    { |params| Song[params[:id]]  }          #show, edit, new
+        songs.delete { |params| Song[params[:id]].destroy }   #destroy
         songs.save   { |atts|  Song.create_or_update(atts) }  #create, update
+        songs.permit :page, :title, author: [:name, :address]
       end
 
       #define 2 routes and custom serializer, custom primary key:
       # index   - GET /v1/artists
       # show    - GET /v1/artists/:id
 
-      r.resource :artists, content_type: 'application/xml', primary_key: 'artist_id' do |artists|
+      r.resource :artists, content_type: 'application/xml', primary_key: :artist_id do |artists|
         artists.list      { |params| Artist.where(params).all }
-        artists.one       { |params| Artist[params['artist_id']]  }
+        artists.one       { |params| Artist[params[:artist_id]]  }
         artists.serialize { |result| ArtistSerializer.xml(result) }
         artists.routes :index, :show
       end
@@ -93,9 +96,10 @@ route do |r|
         profile.one     { |params| current_user.profile  }                      #show, edit, new
         profile.save    { |atts| current_user.profile.create_or_update(atts)  } #create, update
         profile.delete  { |params| current_user.profile.destroy  }              #destroy
+        profile.permit :name, :address
       end
 
-      #nested routes
+      #define nested routes
       # index   - GET /v1/albums/:parent_id/songs
       # show    - GET /v1/albums/:parent_id/songs/:id
       # index   - GET /v1/albums/:album_id/artwork
@@ -105,7 +109,7 @@ route do |r|
       r.resource :albums do |albums|
         r.resource :songs do |songs|
           songs.list { |params| Song.where({ 'album_id' => params['parent_id'] }) }
-          songs.one  { |params| Song[params['id']] 	}
+          songs.one  { |params| Song[params[:id]] 	}
           songs.routes :index, :show
         end
         r.resource :artwork, parent_key: 'album_id' do |artwork|
@@ -114,7 +118,7 @@ route do |r|
         end
         r.resource :favorites, bare: true do |favorites|
           favorites.list  { |params| Favorite.where(params).all  }
-          favorites.one   { |params| Favorite[params['id']] )  }
+          favorites.one   { |params| Favorite[params[:id]] )  }
           favorites.routes :index, :show
         end
       end

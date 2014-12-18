@@ -8,7 +8,7 @@ class RestApiPerformanceTest < Minitest::Benchmark
 		app :rest_api do |r|
 			r.resource :albums do |rsc|
 				rsc.list   { |params| Album.find(params)  }
-				rsc.one    { |params| Album[params['id']] 	}
+				rsc.one    { |params| Album[params[:id]] 	}
 				rsc.save    { |atts| Album.create_or_update(atts) 	}
 				rsc.routes :show, :create
 			end

@@ -6,9 +6,10 @@ class RestApiSingletonTest < Minitest::Test
 	def setup
 		app :rest_api do |r|
 			r.resource :profile, singleton: true do |rsc|
-				rsc.one { |params| Profile[params['id'] || 12]}
+				rsc.one { |params| Profile[params[:id] || 12]}
 				rsc.save { |atts| Profile.create_or_update(atts) }
 				rsc.delete { |params| Profile[12].destroy	}
+				rsc.permit :name
 			end
 		end
 	end

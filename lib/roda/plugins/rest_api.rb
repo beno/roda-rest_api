@@ -60,6 +60,10 @@ class Roda
 				def routes(*routes)
 					@routes = routes
 				end
+				
+				def permit(*permitted)
+					@permitted = permitted
+				end
 					
 				def routes!
 					unless @routes
@@ -72,15 +76,57 @@ class Roda
 				def perform(method, id = nil)
 					begin
 						args = method === :save ? JSON.parse(@request.body) : @request.GET
-						args.merge!(@primary_key => id) if id
-						args.merge!(@parent_key => @captures[0]) if @captures
+						args = permitted_params(args)
+						args.merge!(@primary_key.to_sym => id) if id
+						args.merge!(@parent_key.to_sym => @captures[0]) if @captures
 						self.send(method).call(args)
 					rescue StandardError => e
 						raise if ENV['RACK_ENV'] == 'development'
 						@request.response.status = method === :save ? 422 : 404
 					end
 				end
-
+				
+				private
+				
+				def permitted_params(params, keypath = [])
+					permitted = nil
+					case params
+					when Hash
+						permitted = Hash.new
+						params.each_pair do |k,v|
+							keypath << k.to_sym
+							if permitted?(keypath)
+								value = permitted_params(v, keypath)
+								permitted[k.to_sym] = value if value
+							end
+							keypath.pop
+						end
+					else
+						permitted = params if permitted?(keypath)
+					end
+					permitted
+				end
+				
+				def permitted?(keypath)
+					return false unless @permitted
+					permitted = @permitted
+					find_key = ->(items, key){
+						items.find do |item|
+							case item
+							when Hash
+								!!item.keys.index(key)
+							when Symbol
+								item === key
+							end
+						end
+					}
+					keypath.each do |key|
+						found = find_key.call(permitted, key)
+						permitted = found.is_a?(Hash) ? found.values.flatten : []
+						return false unless found
+					end
+				end
+			
 			end
 			
 			module RequestMethods
