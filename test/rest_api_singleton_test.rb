@@ -21,14 +21,14 @@ class RestApiSingletonTest < Minitest::Test
 	def test_singleton_create
 		name = 'bar'
 		album = Profile.new(1, name)
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: name}.to_json})
+		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
 	end
 	
 	def test_singleton_update
 		name = 'bar'
 		album = Profile.new(1, name)
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => {name: name}.to_json})
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PUT', 'rack.input' => {name: name}.to_json})
+		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => post_args({name: name})})
+		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PUT', 'rack.input' => post_args({name: name})})
 	end
 	
 	def test_singleton_destroy

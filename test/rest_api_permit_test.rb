@@ -29,7 +29,6 @@ class RestApiPermitTest < Minitest::Test
 		assert_equal Album.find({}).to_json, body('/albums', {'QUERY_STRING' => 'page_ct=2'})
 	end
 
-=begin
 	def test_create_permitted
 		app :rest_api do |r|
 			r.resource :albums do |albums|
@@ -41,8 +40,8 @@ class RestApiPermitTest < Minitest::Test
 
 		atts = {name: 'name', price: 3}
 		album = Album.new(1, atts[:name], atts[:price])
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
-		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
+		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 	
 	def test_create_not_permitted
@@ -56,7 +55,7 @@ class RestApiPermitTest < Minitest::Test
 	
 		atts = {name: 'name', price: 3}
 		album = Album.new(1, atts[:name])
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 
 	def test_create_nested_single
@@ -70,7 +69,7 @@ class RestApiPermitTest < Minitest::Test
 	
 		atts = {name: 'name', price: {amount: 4}}
 		album = Album.new(1, atts[:name], atts[:price])
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 	
 	def test_create_nested_array
@@ -84,7 +83,7 @@ class RestApiPermitTest < Minitest::Test
 	
 		atts = {name: 'name', price: {amount: 4}}
 		album = Album.new(1, atts[:name], atts[:price])
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 	
 	def test_create_nested_single_not_permitted
@@ -98,7 +97,7 @@ class RestApiPermitTest < Minitest::Test
 	
 		atts = {name: 'name', price: {amount: 4}}
 		album = Album.new(1, atts[:name], {})
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 	
 	def test_create_nested_array_not_permitted
@@ -112,10 +111,8 @@ class RestApiPermitTest < Minitest::Test
 	
 		atts = {name: 'name', price: {amount: 4, currency:'foo'}}
 		album = Album.new(1, atts[:name], {currency:'foo'})
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => atts.to_json})
+		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args(atts)})
 	end
 
-
-=end
 
 end

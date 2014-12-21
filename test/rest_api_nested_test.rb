@@ -67,7 +67,7 @@ class RestApiNestedTest < Minitest::Test
 	def test_singleton_update
 		id, name = 3, 'bar'
 		settings = Settings.new(id, name)
-		assert_equal settings.to_json, body('/albums/12/settings', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => {name: name}.to_json})
+		assert_equal settings.to_json, body('/albums/12/settings', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => post_args({name: name})})
 	end
 	#
 	def test_favorites_index

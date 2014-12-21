@@ -1,8 +1,13 @@
 require "minitest/autorun"
 require "roda"
 require "json"
+require "stringio"
+require "rack/test"
 
 module TestHelpers
+	include Rack::Test::Methods
+	
+	
 	def app(type=nil, &block)
 		case type
 		when :new
@@ -46,6 +51,10 @@ module TestHelpers
 		c = Class.new(Roda)
 		c.class_eval(&block)
 		c
+	end
+	
+	def post_args(args)
+		StringIO.new(args.to_json)
 	end
 	
 	class Mock

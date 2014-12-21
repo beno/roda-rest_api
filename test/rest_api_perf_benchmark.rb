@@ -26,7 +26,7 @@ class RestApiPerformanceTest < Minitest::Benchmark
 	def bench_create
 		assert_performance_linear 0.99 do |n|
 			n.times do
-				body('/albums',  {'REQUEST_METHOD' => 'POST', 'rack.input' => {name: 'foo'}.to_json})
+				body('/albums',  {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: 'foo'})})
 			end
 		end
 	end

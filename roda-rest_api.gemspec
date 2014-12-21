@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
 	s.name        = 'roda-rest_api'
-	s.version     = '1.2.1'
+	s.version     = '1.3'
 	s.date        = '2014-12-14'
 	s.summary     = "REST APIs with Roda"
 	s.description = "A Roda plugin for RESTful APIs"
@@ -14,5 +14,6 @@ Gem::Specification.new do |s|
 
 	s.add_development_dependency 'rake', '~> 10'
 	s.add_development_dependency 'minitest', '~> 5.5'
+	s.add_development_dependency 'rack-test', '~> 0.6'
 
 end

@@ -73,10 +73,14 @@ class Roda
 					@routes.each { |route| @request.send(route) }
 				end
 				
+				POST_BODY  = 'rack.input'.freeze
+				FORM_INPUT = 'rack.request.form_input'.freeze
+				FORM_HASH  = 'rack.request.form_hash'.freeze
+
+				
 				def perform(method, id = nil)
 					begin
-						args = method === :save ? JSON.parse(@request.body) : @request.GET
-						args = permitted_params(args)
+						args = self.arguments(method)
 						args.merge!(@primary_key.to_sym => id) if id
 						args.merge!(@parent_key.to_sym => @captures[0]) if @captures
 						self.send(method).call(args)
@@ -86,23 +90,40 @@ class Roda
 					end
 				end
 				
+				protected
+				
+				def arguments(method)
+					args = if method === :save
+						if @request.media_type == "application/x-www-form-urlencoded"
+							@request.POST
+						else
+							JSON.parse(@request.body.read)
+						end
+					else
+						@request.GET
+					end
+					args = permitted_args(args)
+				end
+
+
 				private
 				
-				def permitted_params(params, keypath = [])
+				
+				def permitted_args(args, keypath = [])
 					permitted = nil
-					case params
+					case args
 					when Hash
 						permitted = Hash.new
-						params.each_pair do |k,v|
+						args.each_pair do |k,v|
 							keypath << k.to_sym
 							if permitted?(keypath)
-								value = permitted_params(v, keypath)
+								value = permitted_args(v, keypath)
 								permitted[k.to_sym] = value if value
 							end
 							keypath.pop
 						end
 					else
-						permitted = params if permitted?(keypath)
+						permitted = args if permitted?(keypath)
 					end
 					permitted
 				end
