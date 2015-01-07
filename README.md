@@ -63,14 +63,14 @@ route do |r|
       # edit    - GET /v1/songs/:id/edit
       # new     - GET /v1/songs/new
       
-      # call permit to whitelist allowed parameters (for both POST and GET requests)
+      # call permit to whitelist allowed parameters for save callback
       
       r.resource :songs do |songs|
         songs.list   { |params| Song.where(params).all }      #index
         songs.one    { |params| Song[params[:id]]  }          #show, edit, new
         songs.delete { |params| Song[params[:id]].destroy }   #destroy
         songs.save   { |atts|  Song.create_or_update(atts) }  #create, update
-        songs.permit :page, :title, author: [:name, :address]
+        songs.permit :title, author: [:name, :address]
       end
 
       #define 2 routes and custom serializer, custom primary key:

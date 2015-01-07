@@ -49,6 +49,7 @@ class Roda
 				
 				def delete(&block)
 					@delete = block if block
+					@content_type = nil
 					@delete || ->(_){raise NotImplementedError, "delete"}
 				end
 				
@@ -93,21 +94,28 @@ class Roda
 				protected
 				
 				def arguments(method)
-					args = if method === :save
-						if @request.media_type == "application/x-www-form-urlencoded"
+					if method === :save
+						args = if @request.media_type == "application/x-www-form-urlencoded"
 							@request.POST
 						else
-							JSON.parse(@request.body.read)
+							JSON.parse(@request.body.string)
 						end
+						permitted_args args
 					else
-						@request.GET
+						symbolize_keys @request.GET
 					end
-					args = permitted_args(args)
 				end
-
 
 				private
 				
+				def symbolize_keys(args)
+					_args = {}
+					args.each do |k,v|
+						v = symbolize_keys(v) if v.is_a?(Hash)
+						_args[k.to_sym] = v
+					end
+					_args
+				end
 				
 				def permitted_args(args, keypath = [])
 					permitted = nil
@@ -156,7 +164,7 @@ class Roda
 					path = options.delete(:path) || 'api'
 					subdomain = options.delete(:subdomain)
 					options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
-					on([path, true], options, &block)
+					on(path, options, &block)
 				end
 
 				def version(version, &block)
@@ -181,7 +189,7 @@ class Roda
 
 			  def show(options={}, &block)
 				  block ||= default_block(:one)
-					get(path, options, &block)
+					get(_path, options, &block)
 			  end
 
 			  def create(options={}, &block)
@@ -195,12 +203,12 @@ class Roda
 			  def update(options={}, &block)
 					block ||= default_block(:save)
 				  options.merge!(method: [:put, :patch])
-					is(path, options, &block)
+					is(_path, options, &block)
 			  end
 
 			  def destroy(options={}, &block)
 					block ||= default_block(:delete)
-					delete(path, options) do
+					delete(_path, options) do
 						response.status = 204
 						block.call(*captures) if block
 					end
@@ -208,7 +216,7 @@ class Roda
 
 			  def edit(options={}, &block)
 					block ||= default_block(:one)
-					get(path("edit"), options, &block)
+					get(_path("edit"), options, &block)
 			  end
 
 			  def new(options={}, &block)
@@ -218,8 +226,8 @@ class Roda
 				
 			  private
 			  
-			  def path(path=nil)
-				  if @resource.singleton
+			  def _path(path=nil)
+				  if @resource and @resource.singleton
 						path = ["", true] unless path
 					else
 						path = [":d", path].compact.join("/")
