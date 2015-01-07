@@ -28,14 +28,14 @@ class RestApiResourceTest < Minitest::Test
 	end
 	
 	def test_index_with_params
-		assert_equal Album.find({'page' => 3}).to_json, body('/albums', {'QUERY_STRING' => 'page=3'})
+		assert_equal Album.find({:page => 3}).to_json, body('/albums', {'QUERY_STRING' => 'page=3'})
 	end
 	
 	def test_show
 		assert_equal Album[12].to_json, body('/albums/12')
 	end
 	
-	def test_notfound
+	def test_notfound_id
 		assert_equal 404, status('/albums/13')
 	end
 	

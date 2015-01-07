@@ -164,6 +164,7 @@ class Roda
 					path = options.delete(:path) || 'api'
 					subdomain = options.delete(:subdomain)
 					options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
+					path = true if path.nil? or path.empty?
 					on(path, options, &block)
 				end
 
