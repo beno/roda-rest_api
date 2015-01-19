@@ -98,7 +98,7 @@ class Roda
 						args = if @request.media_type == "application/x-www-form-urlencoded"
 							@request.POST
 						else
-							JSON.parse(@request.body.string)
+							JSON.parse(@request.body.read)
 						end
 						permitted_args args
 					else
