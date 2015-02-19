@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
 	s.name        = 'roda-rest_api'
-	s.version     = '1.3.1'
+	s.version     = '1.4'
 	s.date        = '2014-12-14'
 	s.summary     = "REST APIs with Roda"
 	s.description = "A Roda plugin for RESTful APIs"
@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
 	s.homepage    = 'http://github.com/beno/roda-rest_api'
 	s.license     = 'MIT'
 	
-	s.add_runtime_dependency 'roda', '~> 1.2'
+	s.add_runtime_dependency 'roda', '~> 2'
 
 	s.add_development_dependency 'rake', '~> 10'
 	s.add_development_dependency 'minitest', '~> 5.5'
