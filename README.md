@@ -126,8 +126,9 @@ route do |r|
       #call block before route is called
       
       r.resource :user, singleton: true do
-        route :create    # public
-        route :update do # private
+        user.save {|atts| User.create_or_update(atts) }
+        user.routes :create    # public
+        user.routes :update do # private
           authenticate!
         end
       end
