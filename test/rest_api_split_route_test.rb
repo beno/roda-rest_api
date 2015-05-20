@@ -15,8 +15,9 @@ class RestApiSplitRoutesTest < Minitest::Test
 				u.one { |params| "one" }
 				u.list { |params| "list" }
 				u.routes :show
-				anything
-				u.routes :index
+				u.routes :index  do 
+				 	anything
+ 				end
 			end
 		end
 	end

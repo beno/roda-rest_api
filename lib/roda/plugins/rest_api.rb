@@ -59,6 +59,7 @@ class Roda
 				
 				def routes(*routes)
 					routes! if @routes
+					yield if block_given?
 					@routes = routes
 				end
 				
