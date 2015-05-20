@@ -123,6 +123,15 @@ route do |r|
         end
       end
       
+      #call block before route is called
+      
+      r.resource :user, singleton: true do
+        route :create    # public
+        route :update do # private
+          authenticate!
+        end
+      end
+      
       #define custom routes
       
       r.resource :albums do
