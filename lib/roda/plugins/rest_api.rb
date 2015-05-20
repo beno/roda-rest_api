@@ -58,8 +58,8 @@ class Roda
 				end
 				
 				def routes(*routes)
-					@routes ||= []
-					@routes.concat routes
+					routes! if @routes
+					@routes = routes
 				end
 				
 				def permit(*permitted)
