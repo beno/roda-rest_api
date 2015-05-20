@@ -58,7 +58,8 @@ class Roda
 				end
 				
 				def routes(*routes)
-					@routes = routes
+					@routes ||= []
+					@routes.concat routes
 				end
 				
 				def permit(*permitted)
