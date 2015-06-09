@@ -89,6 +89,7 @@ class Roda
 					rescue StandardError => e
 						raise if ENV['RACK_ENV'] == 'development'
 						@request.response.status = method === :save ? 422 : 404
+						@request.response.write e
 					end
 				end
 				
@@ -96,7 +97,7 @@ class Roda
 				
 				def arguments(method)
 					if method === :save
-						args = if @request.media_type == "application/x-www-form-urlencoded"
+						args = if Rack::Request::FORM_DATA_MEDIA_TYPES.include?(@request.media_type)
 							@request.POST
 						else
 							JSON.parse(@request.body.read)

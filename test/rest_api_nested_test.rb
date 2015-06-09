@@ -41,57 +41,57 @@ class RestApiNestedTest < Minitest::Test
 	end
 
 	def test_album_index
-		assert_equal Album.find({}).to_json, body('/albums')
+		assert_equal Album.find({}).to_json, request.get('/albums').body
 	end
 	
 	def test_album_show
-		assert_equal Album[10].to_json, body('/albums/10')
+		assert_equal Album[10].to_json, request.get('/albums/10').body
 	end
 
 	def test_album_fail
-		assert_equal 404, status('/albums/new')
+		assert_equal 404, request.get('/albums/new').status
 	end
 	
 	def test_songs_index
-		assert_equal Song.find({:album_id => 12 }).to_json, body('/albums/12/songs')
+		assert_equal Song.find({:album_id => 12 }).to_json, request.get('/albums/12/songs').body
 	end
 	
 	def test_songs_show
-		assert_equal Song[10].to_json, body('/albums/12/songs/10')
+		assert_equal Song[10].to_json, request.get('/albums/12/songs/10').body
 	end
 
 	def test_songs_fail
-		assert_equal 404, status('/albums/12/songs/new')
+		assert_equal 404, request.get('/albums/12/songs/new').status
 	end
 	
 	def test_singleton_update
 		id, name = 3, 'bar'
 		settings = Settings.new(id, name)
-		assert_equal settings.to_json, body('/albums/12/settings', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => post_args({name: name})})
+		assert_equal settings.to_json, request.patch('/albums/12/settings', input: {name: name}.to_json).body
 	end
 	#
 	def test_favorites_index
-		assert_equal Favorite.find({}).to_json, body('/albums/favorites')
+		assert_equal Favorite.find({}).to_json, request.get('/albums/favorites').body
 	end
 	
 	def test_favorites_show
-		assert_equal Favorite[7].to_json, body('/albums/favorites/7')
+		assert_equal Favorite[7].to_json, request.get('/albums/favorites/7').body
 	end
 	
 	def test_filtered_default
-		assert_equal Song.find({:album_id => 9 }).to_json, body('/albums/9/songs')
+		assert_equal Song.find({:album_id => 9 }).to_json, request.get('/albums/9/songs').body
 	end
 	
 	def test_filtered_custom
-		assert_equal Artwork.find({:album_id => 8 }).to_json, body('/albums/8/artwork')
+		assert_equal Artwork.find({:album_id => 8 }).to_json, request.get('/albums/8/artwork').body
 	end
 
 	def test_deep_nest_fail
-		assert_equal 404, status('/albums/favorites/4/things/3')
+		assert_equal 404, request.get('/albums/favorites/4/things/3').status
 	end
 
 	def test_deep_nest
-		assert_equal Thing[3].to_json, body('/albums/favorites/4/things/3/edit')
+		assert_equal Thing[3].to_json, request.get('/albums/favorites/4/things/3/edit').body
 	end
 
 	

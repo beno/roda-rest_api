@@ -18,43 +18,43 @@ class RestApiRoutesTest < Minitest::Test
 	end
 
 	def test_index_no_slash
-		assert_equal 'album index', body('/albums')
+		assert_equal 'album index', request.get('/albums').body
 	end
 
 	def test_index_slash
-		assert_equal 'album index', body('/albums/')
+		assert_equal 'album index', request.get('/albums/').body
 	end
 
 	def test_show
-		assert_equal 'album 12 show', body('/albums/12')
+		assert_equal 'album 12 show', request.get('/albums/12').body
 	end
 
 	def test_create_no_slash
-		assert_equal 'album create', body('/albums', {'REQUEST_METHOD' => 'POST'})
+		assert_equal 'album create', request.post('/albums').body
 	end
 
 	def test_create_slash
-		assert_equal 'album create', body('/albums/', {'REQUEST_METHOD' => 'POST'})
+		assert_equal 'album create', request.post('/albums/').body
 	end
 
 	def test_update_patch
-		assert_equal 'album 12 update', body('/albums/12', {'REQUEST_METHOD' => 'PATCH'})
+		assert_equal 'album 12 update', request.patch('/albums/12').body
 	end
 
 	def test_update_put
-		assert_equal 'album 12 update', body('/albums/12', {'REQUEST_METHOD' => 'PUT'})
+		assert_equal 'album 12 update', request.put('/albums/12').body
 	end
 
 	def test_edit
-		assert_equal 'album 12 edit', body('/albums/12/edit')
+		assert_equal 'album 12 edit', request.get('/albums/12/edit').body
 	end
 
 	def test_new
-		assert_equal 'album new', body('/albums/new')
+		assert_equal 'album new', request.get('/albums/new').body
 	end
 
 	def test_fail
-		assert_equal 404, status('/albumss')
+		assert_equal 404, request.get('/albumss').status
 	end
 
 end

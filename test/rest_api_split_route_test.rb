@@ -15,7 +15,7 @@ class RestApiSplitRoutesTest < Minitest::Test
 				u.one { |params| "one" }
 				u.list { |params| "list" }
 				u.routes :show
-				u.routes :index  do 
+				u.routes :index  do
 				 	anything
  				end
 			end
@@ -23,8 +23,8 @@ class RestApiSplitRoutesTest < Minitest::Test
 	end
 	
 	def test_split_routes
-		assert_equal "one", body("/things/1")
-		assert_equal "list", body("/things")
+		assert_equal "one", request.get("/things/1").body
+		assert_equal "list", request.get("/things").body
 	end
 		
 end

@@ -14,7 +14,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 'api version 1', body('/api/v1')
+		assert_equal 'api version 1', request.get('/api/v1').body
 	end
 
 	def test_api_version_no_path
@@ -25,7 +25,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 'api version 1', body('/v1')
+		assert_equal 'api version 1', request.get('/v1').body
 	end
 
 	def test_api_version_subdomain
@@ -36,7 +36,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 'api version 1', body('/api/v1', "HTTP_HOST" => "api.example.com")
+		assert_equal 'api version 1', request.get('/api/v1', "HTTP_HOST" => "api.example.com").body
 	end
 
 	def test_api_host_fail
@@ -47,7 +47,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 404, status('/api/v1', "HTTP_HOST" => "www.example.com")
+		assert_equal 404, request.get('/api/v1', "HTTP_HOST" => "www.example.com").status
 	end
 
 	def test_api_path_fail
@@ -58,7 +58,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 404, status('/v1')
+		assert_equal 404, request.get('/v1').status
 	end
 	
 	def test_api_path_fail2
@@ -69,7 +69,7 @@ class RestApiApiTest < Minitest::Test
 				end
 			end
 		end
-		assert_equal 404, status('/foo')
+		assert_equal 404, request.get('/foo').status
 	end
 
 end

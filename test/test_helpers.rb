@@ -24,28 +24,31 @@ module TestHelpers
 		end
 	end
 
-	def req(path='/', env={})
-		if path.is_a?(Hash)
-			env = path
-		else
-			env['PATH_INFO'] = path
-		end
-
-		env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/", "SCRIPT_NAME" => ""}.merge(env)
-		@app.call(env)
+	def request
+		Rack::MockRequest.new(@app)
 	end
-
-	def status(path='/', env={})
-		req(path, env)[0]
-	end
-
-	def header(name, path='/', env={})
-		req(path, env)[1][name]
-	end
-
-	def body(path='/', env={})
-		req(path, env)[2].join
-	end
+	# def req(path='/', env={})
+	# 	if path.is_a?(Hash)
+	# 		env = path
+	# 	else
+	# 		env['PATH_INFO'] = path
+	# 	end
+	#
+	# 	env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/", "SCRIPT_NAME" => ""}.merge(env)
+	# 	@app.call(env)
+	# end
+	#
+	# def status(path='/', env={})
+	# 	req(path, env)[0]
+	# end
+	#
+	# def header(name, path='/', env={})
+	# 	req(path, env)[1][name]
+	# end
+	#
+	# def body(path='/', env={})
+	# 	req(path, env)[2].join
+	# end
 
 	def _app(&block)
 		c = Class.new(Roda)
@@ -53,9 +56,9 @@ module TestHelpers
 		c
 	end
 	
-	def post_args(args)
-		StringIO.new(args.to_json)
-	end
+	# def post_args(args)
+	# 	StringIO.new(args.to_json)
+	# end
 	
 	class Mock
 	

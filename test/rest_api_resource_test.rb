@@ -24,102 +24,103 @@ class RestApiResourceTest < Minitest::Test
 	end
 
 	def test_index
-		assert_equal Album.find({}).to_json, body('/albums')
+		assert_equal Album.find({}).to_json, request.get('/albums').body
 	end
 	
 	def test_index_with_params
-		assert_equal Album.find({:page => 3}).to_json, body('/albums', {'QUERY_STRING' => 'page=3'})
+		albums = Album.find({:page => 3})
+		assert_equal albums.to_json, request.get('/albums', {'QUERY_STRING' => 'page=3'}).body
+		assert_equal albums.to_json, request.get('/albums', params:{page:'3'}).body
 	end
 	
 	def test_show
-		assert_equal Album[12].to_json, body('/albums/12')
+		assert_equal Album[12].to_json, request.get('/albums/12').body
 	end
 	
 	def test_notfound_id
-		assert_equal 404, status('/albums/13')
+		assert_equal 404, request.get('/albums/13').status
 	end
-	
 	
 	def test_create
-		name = 'bar'
-		album = Album.new(1, name)
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
-		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
+		id, name = 1, 'bar'
+		album = Album.new(id, name)
+		response = request.post('/albums', input: {name: name}.to_json)
+		assert_equal album.to_json, response.body
+		assert_equal 201, response.status
 	end
 	
-	
-	
-	def test_create_form
-		name = 'bar'
-		album = Album.new(1, name)
-		post '/albums', {name: name}
-		assert_equal album.to_json, body('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
-		assert_equal 201, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
+	def test_create_empty
+		response = request.post('/albums', input: "")
+		assert_equal 422, response.status
+		assert_match /at least contain two octets/, response.body
 	end
-	
+
 	def test_create_error
-		assert_equal 422, status('/albums', {'REQUEST_METHOD' => 'POST', 'rack.input' => StringIO.new("illegal")})
+		response = request.post('/albums', input: "illegal")
+		assert_match /unexpected token/, response.body
+		assert_equal 422, response.status
 	end
 	
 	def test_update_error
-		assert_equal 422, status('/albums/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => StringIO.new("illegal")})
-		assert_equal 422, status('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => StringIO.new("illegal")})
+		assert_equal 422, request.put('/albums/12', input: "illegal").status
+		assert_equal 422, request.patch('/albums/12', input: "illegal").status
 	end
 	
 	def test_update_album
 		id, name = 12, 'foo'
 		album = Album.new(id, name)
-		assert_equal album.to_json, body('/albums/12', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => post_args({id: id, name: name})})
-		assert_equal album.to_json, body('/albums/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => post_args({id: id, name: name})})
+		assert_equal album.to_json, request.patch('/albums/12', input: {id: id, name: name}.to_json).body
+		assert_equal album.to_json, request.put('/albums/12', input: {id: id, name: name}.to_json).body
 	end
 	
 	def test_destroy
-		assert_equal '', body('/albums/12', {'REQUEST_METHOD' => 'DELETE'})
-		assert_equal 204, status('/albums/12', {'REQUEST_METHOD' => 'DELETE'})
+		response = request.delete('/albums/12')
+		assert_equal '', response.body
+		assert_equal 204, response.status
 	end
 	
 	def test_edit
-		assert_equal Album[12].to_json, body('/albums/12/edit')
+		assert_equal Album[12].to_json, request.get('/albums/12/edit').body
 	end
 	
 	def test_new
-		assert_equal Album.new.to_json, body('/albums/new')
+		assert_equal Album.new.to_json, request.get('/albums/new').body
 	end
 	
 	def test_album_show_status
-		assert_equal 200, status('/albums/12')
+		assert_equal 200, request.get('/albums/12').status
 	end
 	
 	def test_undefined_path
-		assert_equal 404, status('/albums/list')
+		assert_equal 404, request.get('/albums/list').status
 	end
 	
 	def test_artist_index
-		assert_equal Artist.find({}).to_json, body('/artists')
+		assert_equal Artist.find({}).to_json, request.get('/artists').body
 	end
 	
 	def test_artist_show
-		assert_equal Artist[12].to_json, body('/artists/12')
+		assert_equal Artist[12].to_json, request.get('/artists/12').body
 	end
 	
 	def test_artist_show_status
-		assert_equal 200, status('/artists/12')
+		assert_equal 200, request.get('/artists/12').status
 	end
 	
 	def test_artist_custom_destroy
-		assert_equal 'destroy artist', body('/artists/12', {'REQUEST_METHOD' => 'DELETE'} )
+		assert_equal 'destroy artist', request.delete('/artists/12').body
 	end
 	
 	def test_artist_not_implemented
-		assert_raises(NotImplementedError) { body('/artists', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({'name' => 'foo'}) }) }
+		assert_raises(NotImplementedError) { request.post('/artists', input: {'name' => 'foo'}.to_json).body }
 	end
 	
 	def test_artist_method_not_defined
-		assert_equal 404, status('/artists/12', {'REQUEST_METHOD' => 'PUT', 'rack.input' => post_args({'name' => 'foo'}) })
+		assert_equal 404, request.put('/artists/12', input: {'name' => 'foo'}.to_json).status
 	end
 	
 	def test_artist_not_found_path
-		assert_equal 404, status('/artistss')
+		assert_equal 404, request.get('/artistss').status
 	end
 	
 end

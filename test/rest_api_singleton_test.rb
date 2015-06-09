@@ -15,33 +15,34 @@ class RestApiSingletonTest < Minitest::Test
 	end
 
 	def test_singleton_show
-		assert_equal Profile[12].to_json, body('/profile')
+		assert_equal Profile[12].to_json, request.get('/profile').body
 	end
 
 	def test_singleton_create
 		name = 'bar'
 		album = Profile.new(1, name)
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'POST', 'rack.input' => post_args({name: name})})
+		assert_equal album.to_json, request.post('/profile', input: {name: name}.to_json).body
 	end
 	
 	def test_singleton_update
 		name = 'bar'
 		album = Profile.new(1, name)
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PATCH', 'rack.input' => post_args({name: name})})
-		assert_equal album.to_json, body('/profile', {'REQUEST_METHOD' => 'PUT', 'rack.input' => post_args({name: name})})
+		assert_equal album.to_json, request.patch('/profile', input: {name: name}.to_json).body
+		assert_equal album.to_json, request.put('/profile', input: {name: name}.to_json).body
 	end
 	
 	def test_singleton_destroy
-		assert_equal '', body('/profile', {'REQUEST_METHOD' => 'DELETE'})
-		assert_equal 204, status('/profile', {'REQUEST_METHOD' => 'DELETE'})
+		response = request.delete('/profile')
+		assert_equal '', response.body
+		assert_equal 204, response.status
 	end
 	
 	def test_singleton_edit
-		assert_equal Profile[12].to_json, body('/profile/edit')
+		assert_equal Profile[12].to_json, request.get('/profile/edit').body
 	end
 	
 	def test_singleton_new
-		assert_equal Profile.new.to_json, body('/profile/new')
+		assert_equal Profile.new.to_json, request.get('/profile/new').body
 	end
 
 
