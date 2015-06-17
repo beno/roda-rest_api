@@ -10,6 +10,7 @@ class Roda
 				app.plugin :all_verbs
 				app.plugin :symbol_matchers
 				app.plugin :header_matchers
+				app.plugin :drop_body
 			end
 			
 			class Resource

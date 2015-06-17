@@ -53,7 +53,7 @@ module TestHelpers
 	def _app(&block)
 		c = Class.new(Roda)
 		c.class_eval(&block)
-		c
+		Rack::Lint.new c
 	end
 	
 	# def post_args(args)

@@ -78,7 +78,7 @@ class RestApiResourceTest < Minitest::Test
 		assert_equal '', response.body
 		assert_equal 204, response.status
 	end
-	
+		
 	def test_edit
 		assert_equal Album[12].to_json, request.get('/albums/12/edit').body
 	end
@@ -108,7 +108,7 @@ class RestApiResourceTest < Minitest::Test
 	end
 	
 	def test_artist_custom_destroy
-		assert_equal 'destroy artist', request.delete('/artists/12').body
+		assert_equal '', request.delete('/artists/12').body
 	end
 	
 	def test_artist_not_implemented
