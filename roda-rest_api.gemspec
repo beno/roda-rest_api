@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
 	s.name        = 'roda-rest_api'
-	s.version     = '1.4.2'
-	s.date        = '2014-12-14'
+	s.version     = '1.4.4'
+	s.date        = '2015-06-09'
 	s.summary     = "REST APIs with Roda"
 	s.description = "A Roda plugin for RESTful APIs"
 	s.authors     = ["Michel Benevento"]
