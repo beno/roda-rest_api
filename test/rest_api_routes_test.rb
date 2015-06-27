@@ -7,12 +7,12 @@ class RestApiRoutesTest < Minitest::Test
 		app :rest_api do |r|
 			r.resource :albums do
 				r.index {"album index"}
+				r.new {"album new"}
 				r.show {|id| "album #{id} show"}
 				r.update {|id| "album #{id} update"}
 				r.destroy {|id| "album #{id} destroy"}
 				r.create {"album create"}
 				r.edit {|id| "album #{id} edit"}
-				r.new {"album new"}
 			end
 		end
 	end

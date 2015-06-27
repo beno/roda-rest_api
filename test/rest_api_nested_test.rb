@@ -49,7 +49,7 @@ class RestApiNestedTest < Minitest::Test
 	end
 
 	def test_album_fail
-		assert_equal 404, request.get('/albums/new').status
+		assert_equal 404, request.get('/albums/--').status
 	end
 	
 	def test_songs_index
@@ -61,7 +61,7 @@ class RestApiNestedTest < Minitest::Test
 	end
 
 	def test_songs_fail
-		assert_equal 404, request.get('/albums/12/songs/new').status
+		assert_equal 404, request.get('/albums/12/songs/--').status
 	end
 	
 	def test_singleton_update

@@ -8,7 +8,7 @@ module TestHelpers
 	include Rack::Test::Methods
 	
 	
-	def app(type=nil, &block)
+	def app(type=nil, opts={}, &block)
 		case type
 		when :new
 			@app = _app{route(&block)}
@@ -16,7 +16,7 @@ module TestHelpers
 			@app = _app(&block)
 		when Symbol
 			@app = _app do
-				plugin type
+				plugin type, opts
 				route(&block)
 			end
 		else
@@ -27,39 +27,13 @@ module TestHelpers
 	def request
 		Rack::MockRequest.new(@app)
 	end
-	# def req(path='/', env={})
-	# 	if path.is_a?(Hash)
-	# 		env = path
-	# 	else
-	# 		env['PATH_INFO'] = path
-	# 	end
-	#
-	# 	env = {"REQUEST_METHOD" => "GET", "PATH_INFO" => "/", "SCRIPT_NAME" => ""}.merge(env)
-	# 	@app.call(env)
-	# end
-	#
-	# def status(path='/', env={})
-	# 	req(path, env)[0]
-	# end
-	#
-	# def header(name, path='/', env={})
-	# 	req(path, env)[1][name]
-	# end
-	#
-	# def body(path='/', env={})
-	# 	req(path, env)[2].join
-	# end
 
 	def _app(&block)
 		c = Class.new(Roda)
 		c.class_eval(&block)
 		Rack::Lint.new c
 	end
-	
-	# def post_args(args)
-	# 	StringIO.new(args.to_json)
-	# end
-	
+		
 	class Mock
 	
 		attr_accessor :id, :name, :price

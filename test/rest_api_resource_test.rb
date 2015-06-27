@@ -7,7 +7,7 @@ class RestApiResourceTest < Minitest::Test
 		app :rest_api do |r|
 			r.resource :albums do |rsc|
 				rsc.list   { |params| Album.find(params)  }
-				rsc.one    { |params| Album[params[:id]] 	}
+				rsc.one    { |params| Album[params[:id]] }
 				rsc.delete { |params| Album[params[:id]].destroy }
 				rsc.save   { |atts| Album.create_or_update(atts)  }
 				rsc.permit :name
@@ -92,7 +92,7 @@ class RestApiResourceTest < Minitest::Test
 	end
 	
 	def test_undefined_path
-		assert_equal 404, request.get('/albums/list').status
+		assert_equal 404, request.get('/albums/--').status
 	end
 	
 	def test_artist_index

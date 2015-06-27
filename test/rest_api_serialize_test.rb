@@ -3,6 +3,10 @@ require "test_helpers"
 class RestApiSerializeTest < Minitest::Test
 	include TestHelpers
 	
+	def serialize(res)
+		"{{#{res.id}}}"
+	end
+	
 	def setup
 		app :rest_api do |r|
 			r.resource :albums, content_type: 'text/xml' do |rsc|
@@ -25,6 +29,28 @@ class RestApiSerializeTest < Minitest::Test
 		assert_equal "<xml>12</xml>", response.body
 		assert_equal 'text/xml', response.headers['Content-Type']
 	end
+	
+	def test_default_serialize
+		app :rest_api, serialize: ->(res){serialize(res)} do |r|
+			r.resource :albums do |rsc|
+				rsc.one   { |atts| Album[atts[:id]] }
+			end
+		end
+		assert_equal "{{12}}", request.get('/albums/12').body
+	end
+
+
+  def test_override_serialize
+	  	app :rest_api, serialize: ->(res){serialize(res)} do |r|
+	  		r.resource :albums do |rsc|
+	  			rsc.one   { |atts| Album[atts[:id]] }
+	  			rsc.serialize {|res| "++#{res.id}++"}
+	  		end
+	  	end
+	  	assert_equal "++12++", request.get('/albums/12').body
+  end
+  
+
 
 
 end
