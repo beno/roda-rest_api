@@ -2,4 +2,5 @@ vendor
 .bundle
 *.gem
 
+pkg
 Gemfile.lock
