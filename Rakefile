@@ -15,7 +15,7 @@ Jeweler::Tasks.new do |gem|
 	gem.description = %Q{Create restful API easily with the Roda framework}
 	gem.email = "michelbenevento@yahoo.com"
 	gem.authors = ["Michel Benevento"]
-	gem.version = "2.0.0"
+	gem.version = "2.0.1"
 	# dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
