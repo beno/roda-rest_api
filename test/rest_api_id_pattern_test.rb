@@ -8,19 +8,19 @@ class RestApiIdPatternTest < Minitest::Test
       r.api id_pattern: /id([\d]+)/ do
         r.resource :artists, id_pattern: /@([\d]+)/  do |rsc|
           rsc.one { |atts| "ARTIST_#{atts[:id]}" }
-          r.resource :songs, id_pattern: /id([\d]+)/  do |rsc|
+          r.resource :songs, id_pattern: /foo([\d]+)/  do |rsc|
             rsc.one { |atts| "SONG_#{atts[:id]}" }
           end
-          r.resource :concerts  do |rsc|
+          r.resource :concerts  do |rsc| # need to be explicit
             rsc.one { |atts| "CONCERT_#{atts[:id]}" }
           end
+        end
+        r.resource :venues do |rsc|
+          rsc.one { |atts| "VENUE_#{atts[:id]}" }
         end
         r.resource :albums do |rsc|
           rsc.save { |atts| "SAVE_ALBUM_#{atts[:id]}" }
           rsc.routes :create, :update
-        end
-        r.resource :venues do |rsc|
-          rsc.one { |atts| "VENUE_#{atts[:id]}" }
         end
 
       end
@@ -40,16 +40,16 @@ class RestApiIdPatternTest < Minitest::Test
   end
   
   def test_nested
-    assert_equal "SONG_4", request.get('api/artists/@12/songs/id4').body
+    assert_equal "SONG_4", request.get('api/artists/@12/songs/foo4').body
   end
 
   def test_nested_fallback
     assert_equal "CONCERT_3", request.get('api/artists/@12/concerts/@3').body
   end
   
-  # def test_fallback
-  #   assert_equal "CONCERT_3", request.get('api/artists/@12/concerts/id3').body
-  # end
+  def test_fallback
+    assert_equal "VENUE_5", request.get('api/venues/id5').body
+  end
 
 
 

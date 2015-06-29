@@ -91,7 +91,7 @@ class RestApiNestedTest < Minitest::Test
 	end
 
 	def test_deep_nest
-		assert_equal Thing[3].to_json, request.get('/albums/favorites/4/things/3/edit').body
+		assert_equal Thing[3].to_json, request.get('/albums/favorites/things/3/edit').body
 	end
 
 	

@@ -164,27 +164,49 @@ route do |r|
 end
 ```
 
-###Option
+###Options
 
-The plugin supports the options serialize, content_type, wrapper and id_pattern to modify processing of the request. Besides these, any number of custom options can be passed, which can be handy for the wrapper option.
+The plugin supports several options serialize, content_type, wrapper and id_pattern to modify processing of the request. Besides these, any number of custom options can be passed, which can be handy for the wrapper option.
 Each option can be specified and overridden at the api, version or resource level.
 
 ####Serialization and content type
 
-A serialization block is called with the query result and is supposed to return a string. The content type can be specified accordingly.
+A serializer is an object that responds to :serialize and returns a string. Optionally it can provide the content_type, which may also be specified inline. Serialization can also be specified within a block inside the resource.
 
 ```
+
+class XMLSerializer
+
+  def serialize(result)   #required
+    result.to_xml
+  end
+
+  def content_type        #optional
+    'text/xml'
+  end
+
+end
+
+class CSVSerializer
+
+  def serialize(result)
+    result.to_csv
+  end
+
+end
+
+
 class App < Roda
     
   plugin :rest_api
 
   route do |r|
-    r.api serialize: ->(result){ result.to_xml }, content_type: 'text/xml'
+    r.api serializer: XMLSerializer.new
       r.resource :things do |things|
         things.list {|param| ['foo', 'bar']}
         things.routes :index
       end
-      r.resource :objects, serialize: ->(result){ result.to_json }, content_type: 'application/json' do |objects|
+      r.resource :objects, serializer: CSVSerializer.new, content_type: 'text/csv' do |objects|
         objects.one {|param| Object.find(param) }
         objects.routes :show
       end
@@ -203,7 +225,7 @@ end
 
 ####Wrapper
 
-A wrapper module can be specified, containing one or more 'around_*' methods. These methods should yield with the passed arguments. Wrappers can be used for cleaning up parameters, database transactions, authorization checking or serialization. It is often useful to set a custom option like model_class on a resource when using wrappers.
+A wrapper module can be specified, containing one or more 'around_*' methods. These methods should yield with the passed arguments. Wrappers can be used for cleaning up incoming parameters, database transactions, authorization checking or serialization. A resource can hold a generic :resource option, that can be used for providing extra info to the wrapper. It can be useful to set a custom option like model_class on a resource when using wrappers.
 
 ```
 
@@ -211,7 +233,7 @@ module Wrapper
 
   def around_save(atts)
     # actions before save
-    result = yield(atts)
+    result = yield(atts)  # call save action
     #actions after save
     result
   end
@@ -223,11 +245,15 @@ module SpecialWrapper
 
   def around_delete(atts)
     model_class = opts[:model_class]
-    if request.current_user.can_delete(model_class[atts[:id]])
+    if current_user.can_delete(model_class[atts[:id]])
       yield(atts)
     else
       #not allowed
     end
+  end
+  
+  def current_user
+    @request.current_user
   end
 
 end
@@ -244,7 +270,7 @@ class App < Roda
         things.save {|atts| Thing.create_or_update(atts) } # will be called inside the 'Wrapper#around_save' method
         things.delete {|params| Thing.destroy(params) }    # will be called inside the 'Wrapper#around_delete' method
       end
-      r.resource :items, wrapper: SpecialWrapper, model_class: Item do |items|
+      r.resource :items, wrapper: SpecialWrapper, resource: {model_class: Item} do |items|
         items.delete {|params| Item.destroy(params) }    # will be called inside the 'SpecialWrapper#around_delete' method
       end
 
@@ -259,7 +285,8 @@ To support various id formats, one of the symbol_matcher symbols or a regex can 
 The plugin adds the :uuid symbol for 8-4-4-4-12 formatted UUIDs.
 
 ```
-  r.api id_pattern: :uuid
+  uuid_pat = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/
+  r.api id_pattern: uuid_pat
     r.resource :things do |things|
       things.one {|params| Thing.find(params) }
       r.resource :parts, id_pattern: /part(\d+)/ do |parts|

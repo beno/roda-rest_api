@@ -8,6 +8,16 @@ class RestApiSerializeTest < Minitest::Test
     		"{{#{res.id}}}"
     	end
   end
+  
+  class ContentTypeSerializer
+      def serialize(res)
+        "FOO#{res.id}BAR"
+      end
+      
+      def content_type
+        'foo/bar'
+      end
+  end
 	
 	def setup
 		app :rest_api do |r|
@@ -34,17 +44,28 @@ class RestApiSerializeTest < Minitest::Test
 	
 	def test_default_serialize
 		app :rest_api do |r|
-			r.resource :albums, serializer: TestSerializer do |rsc|
+			r.resource :albums, serializer: TestSerializer.new do |rsc|
 				rsc.one   { |atts| Album[atts[:id]] }
 			end
 		end
 		assert_equal "{{12}}", request.get('/albums/12').body
 	end
+	
+	def test_content_type_serialize
+	  app :rest_api do |r|
+	    r.resource :albums, serializer: ContentTypeSerializer.new do |rsc|
+	      rsc.one   { |atts| Album[atts[:id]] }
+	    end
+	  end
+	  response = request.get('/albums/12')
+	  assert_equal "FOO12BAR", response.body
+	  assert_equal 'foo/bar', response.headers['Content-Type']
+	end
 
 
   def test_override_serialize
 	  	app :rest_api do |r|
-  	  	  r.api serializer: TestSerializer do
+  	  	  r.api serializer: TestSerializer.new do
     	  		r.resource :albums do |rsc|
           rsc.one   { |atts| Album[atts[:id]] }
           rsc.serialize {|res| "++#{res.id}++"}

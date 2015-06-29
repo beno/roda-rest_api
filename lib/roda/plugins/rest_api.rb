@@ -9,7 +9,6 @@ class Roda
         end
       end
 
-
       APPLICATION_JSON = 'application/json'.freeze
       SINGLETON_ROUTES = %i{ create new update show destroy edit }.freeze
       
@@ -29,7 +28,7 @@ class Roda
             
       class Resource
         
-        attr_reader :request, :path, :singleton, :parent, :id_pattern, :content_type
+        attr_reader :request, :path, :singleton, :parent, :id_pattern
         attr_accessor :captures
         
         OPTIONS = { singleton: false,
@@ -38,44 +37,34 @@ class Roda
           id_pattern: /(\d+)/,
           content_type: APPLICATION_JSON,
           bare: false,
-          serializer: RestApi::DefaultSerializer,
+          serializer: RestApi::DefaultSerializer.new,
           wrapper: nil }.freeze
                 
-        def initialize(path, request, parent, options={})
+        def initialize(path, request, parent, option_chain=[])
           @request = request
           @path = path.to_s
-          extract_options options
+          traverse_options option_chain
           if parent
             @parent = parent
             @path = ":id/#{@path}" unless @bare
           end
         end
-                
-        def list(&block)
-          @list = block if block
-          @list || ->(_){raise NotImplementedError, "list"}
+        
+        [:list, :one, :save, :delete, :serialize].each do |meth|
+          define_method meth do |&block|
+            self.instance_variable_set("@#{meth}", block) if block
+            self.instance_variable_get("@#{meth}") || ->(_){raise NotImplementedError, meth.to_s}
+          end
         end
         
-        def one(&block)
-          @one = block if block
-          @one || ->(_){raise NotImplementedError, "one"}
+        def content_type
+          if @serializer && @serializer.respond_to?(:content_type)
+            @serializer.content_type
+          else
+            @content_type
+          end
         end
-        
-        def save(&block)
-          @save = block if block
-          @save || ->(_){raise NotImplementedError, "save"}
-        end
-        
-        def delete(&block)
-          @delete = block if block
-          @delete || ->(_){raise NotImplementedError, "delete"}
-        end
-        
-        def serialize(&block)
-          @serialize = block if block
-          @serialize || ->(_){raise NotImplementedError, "serialize"}
-        end
-        
+                        
         def routes(*routes)
           routes! if @routes
           yield if block_given?
@@ -91,7 +80,6 @@ class Roda
             @routes = SINGLETON_ROUTES.dup
             @routes << :index unless @singleton
           end
-          @request.roda_class.symbol_matcher(:id, @id_pattern)
           @routes.each { |route| @request.send(route) }
         end
         
@@ -136,21 +124,23 @@ class Roda
 
         private
         
-        def extract_options(options)
+        def traverse_options(option_chain)
+          reverse_chain = option_chain.reverse
           OPTIONS.each_pair do |key, default|
             ivar = "@#{key}"
-            value = options.delete(key) || (@parent && @parent.instance_variable_get(ivar)) || default
-            self.instance_variable_set(ivar, value) if value
+            options = reverse_chain.find do |opts|
+              opts[key]
+            end
+            self.instance_variable_set(ivar, (options && options[key]) || default)
           end
           if @wrapper
             raise ":wrapper should be a module" unless @wrapper.is_a? Module
             self.extend @wrapper
           end
           if @serializer
-            raise ":serializer should be a class" unless @serializer.is_a? Class
-            @serialize = ->(res){@serializer.new.serialize(res)}
+            raise ":serializer should respond to :serialize" unless @serializer.respond_to?(:serialize)
+            @serialize = ->(res){@serializer.serialize(res)}
           end
-          p @request.path_info, @id_pattern
         end
         
         def symbolize_keys(args)
@@ -206,7 +196,7 @@ class Roda
       module RequestMethods
         
         def api(options={}, &block)
-          extract_options options
+          extract_resource_options options
           path = options.delete(:path) || 'api'
           subdomain = options.delete(:subdomain)
           options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
@@ -215,14 +205,15 @@ class Roda
         end
 
         def version(version, options={}, &block)
-          extract_options options
+          extract_resource_options options
           on("v#{version}", options, &block)
         end
 
         def resource(path, options={})
-          extract_options options
-          @resource = Resource.new(path, self, @resource, @resource_options.last)
+          extract_resource_options options
+          @resource = Resource.new(path, self, @resource, @resource_options)
           on(@resource.path, options) do
+            roda_class.symbol_matcher(:id, @resource.id_pattern)
             @resource.captures = captures.dup unless captures.empty?
             yield @resource
             @resource.routes!
@@ -276,9 +267,9 @@ class Roda
         
         private
         
-        def extract_options(options)
+        def extract_resource_options(options)
           @resource_options ||= []
-          opts = @resource_options.last || {}
+          opts = {}
           (Resource::OPTIONS.keys & options.keys).each do |key|
             opts[key] = options.delete(key)
           end
@@ -314,7 +305,6 @@ class Roda
         end
         
       end
-
     end
     
     register_plugin(:rest_api, RestApi)
