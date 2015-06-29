@@ -6,7 +6,12 @@ class RestApiWrapperTest < Minitest::Test
   
   module Wrapper
     def around_save(args)
-      "WRAP-#{yield(args)}-WRAP"
+      if opts[:foo]
+        "#{opts[:foo]}-#{yield(args)}-#{opts[:foo]}"
+      else
+        "WRAP-#{yield(args)}-WRAP"
+      end
+      
     	end
   end
   
@@ -37,6 +42,18 @@ class RestApiWrapperTest < Minitest::Test
     assert_equal 'LIST', request.get('api/albums').body
   end
   
+  
+  def test_custom_option_wrapper
+    app :rest_api do |r|
+      r.api wrapper: Wrapper do
+        r.resource :albums, resource: {foo:'BARZ'} do |rsc|
+          rsc.save { |atts| 'ALBUM' }
+        end
+      end
+    end
+    assert_equal "BARZ-ALBUM-BARZ", request.post('api/albums', params:{foo:'bar'}).body
+  end
+  
   def test_failing_wrapper
     app :rest_api do |r|
       r.resource :albums, wrapper: FailingWrapper do |rsc|
@@ -44,7 +61,7 @@ class RestApiWrapperTest < Minitest::Test
         rsc.list { |atts| 'LIST' }
       end
     end
-    # assert_equal 422, request.post('/albums', params:{foo:'bar'}).status
+    assert_equal 422, request.post('/albums', params:{foo:'bar'}).status
     assert_equal 'LIST', request.get('/albums').body
   end
   

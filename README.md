@@ -173,8 +173,7 @@ Each option can be specified and overridden at the api, version or resource leve
 
 A serializer is an object that responds to :serialize and returns a string. Optionally it can provide the content_type, which may also be specified inline. Serialization can also be specified within a block inside the resource.
 
-```
-
+```ruby
 class XMLSerializer
 
   def serialize(result)   #required
@@ -227,8 +226,7 @@ end
 
 A wrapper module can be specified, containing one or more 'around_*' methods. These methods should yield with the passed arguments. Wrappers can be used for cleaning up incoming parameters, database transactions, authorization checking or serialization. A resource can hold a generic :resource option, that can be used for providing extra info to the wrapper. It can be useful to set a custom option like model_class on a resource when using wrappers.
 
-```
-
+```ruby
 module Wrapper
 
   def around_save(atts)
@@ -284,7 +282,7 @@ end
 To support various id formats, one of the symbol_matcher symbols or a regex can be specified to match custom id formats.
 The plugin adds the :uuid symbol for 8-4-4-4-12 formatted UUIDs.
 
-```
+```ruby
   uuid_pat = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/
   r.api id_pattern: uuid_pat
     r.resource :things do |things|

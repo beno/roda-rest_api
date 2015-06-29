@@ -38,7 +38,8 @@ class Roda
           content_type: APPLICATION_JSON,
           bare: false,
           serializer: RestApi::DefaultSerializer.new,
-          wrapper: nil }.freeze
+          wrapper: nil,
+          resource: nil }.freeze
                 
         def initialize(path, request, parent, option_chain=[])
           @request = request
@@ -63,6 +64,10 @@ class Roda
           else
             @content_type
           end
+        end
+        
+        def opts
+          @resource || {}
         end
                         
         def routes(*routes)
