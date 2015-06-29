@@ -25,19 +25,21 @@ class RestApiWrapperTest < Minitest::Test
   
   
   def test_default_wrapper
-    app :rest_api, wrapper: Wrapper do |r|
-      r.resource :albums do |rsc|
-        rsc.save { |atts| 'ALBUM' }
-        rsc.list { |atts| 'LIST' }
+    app :rest_api do |r|
+      r.api wrapper: Wrapper do
+        r.resource :albums do |rsc|
+          rsc.save { |atts| 'ALBUM' }
+          rsc.list { |atts| 'LIST' }
+        end
       end
     end
-    assert_equal "WRAP-ALBUM-WRAP", request.post('/albums', params:{foo:'bar'}).body
-    assert_equal 'LIST', request.get('/albums').body
+    assert_equal "WRAP-ALBUM-WRAP", request.post('api/albums', params:{foo:'bar'}).body
+    assert_equal 'LIST', request.get('api/albums').body
   end
   
   def test_failing_wrapper
-    app :rest_api, wrapper: FailingWrapper do |r|
-      r.resource :albums do |rsc|
+    app :rest_api do |r|
+      r.resource :albums, wrapper: FailingWrapper do |rsc|
         rsc.save { |atts| 'ALBUM' }
         rsc.list { |atts| 'LIST' }
       end
@@ -47,23 +49,26 @@ class RestApiWrapperTest < Minitest::Test
   end
   
   def test_faulty_wrapper
-    assert_raises RuntimeError do
-      app(:rest_api, wrapper: :wrap) do |r|
-        r.resource :albums do |rsc|
+      app(:rest_api) do |r|
+        r.resource :albums, wrapper: :invalid do |rsc|
           rsc.list { |atts| 'LIST' }
         end
       end
-    end
+      assert_raises RuntimeError do
+        request.get('/albums').body
+      end
   end
 
   
   def test_modifying_wrapper
-    app :rest_api, wrapper: ModifyingWrapper do |r|
-      r.resource :albums do |rsc|
-        rsc.save { |atts| atts[:foo] }
+    app :rest_api do |r|
+      r.version 3, wrapper: ModifyingWrapper do
+        r.resource :albums do |rsc|
+          rsc.save { |atts| atts[:foo] }
+        end
       end
     end
-    assert_equal 'baz', request.post('/albums', params:{foo:'bar'}).body
+    assert_equal 'baz', request.post('v3/albums', params:{foo:'bar'}).body
   end
 
 

@@ -2,10 +2,16 @@ class Roda
   module RodaPlugins
 
     module RestApi
+      
+      class DefaultSerializer
+        def serialize(result)
+          result.is_a?(String) ? result : result.to_json
+        end
+      end
+
 
       APPLICATION_JSON = 'application/json'.freeze
-      SINGLETON_ROUTES = %i{ new show create update destroy edit }.freeze
-      OPTS = {}.freeze
+      SINGLETON_ROUTES = %i{ create new update show destroy edit }.freeze
       
       def self.load_dependencies(app, _opts = OPTS)
         app.plugin :all_verbs
@@ -15,35 +21,34 @@ class Roda
       end
       
       def self.configure(app, opts = OPTS)
-        if wrapper = opts[:wrapper]
-          raise "wrapper should be a module" unless wrapper.is_a? Module
-          app.opts[:wrapper] = wrapper
+        all_keys = Resource::OPTIONS.keys << :serialize
+        if (opts.keys & all_keys).any?
+          raise "For version 2.0 all options [#{Resource::OPTIONS.keys.join(' ')}] must be set at the api, version or resource level."
         end
-        app.opts[:serialize] = opts[:serialize] if opts[:serialize]
-        app.opts[:id_pattern] = opts[:id_pattern] if opts[:id_pattern]
       end
-      
+            
       class Resource
         
-        attr_reader :request, :path, :singleton, :content_type, :parent, :id_pattern
+        attr_reader :request, :path, :singleton, :parent, :id_pattern, :content_type
         attr_accessor :captures
+        
+        OPTIONS = { singleton: false,
+          primary_key: "id",
+          parent_key: "parent_id",
+          id_pattern: /(\d+)/,
+          content_type: APPLICATION_JSON,
+          bare: false,
+          serializer: RestApi::DefaultSerializer,
+          wrapper: nil }.freeze
                 
         def initialize(path, request, parent, options={})
           @request = request
           @path = path.to_s
-          bare = options.delete(:bare) || false
-          @singleton = options.delete(:singleton) || false
-          @primary_key = options.delete(:primary_key) || "id"
-          @parent_key = options.delete(:parent_key) || "parent_id"
-          @content_type = options.delete(:content_type) || APPLICATION_JSON
+          extract_options options
           if parent
             @parent = parent
-            @path = [':id', @path].join('/') unless bare
+            @path = ":id/#{@path}" unless @bare
           end
-          if wrapper
-            self.extend wrapper
-          end
-          @id_pattern = options.delete(:id_pattern)
         end
                 
         def list(&block)
@@ -63,13 +68,12 @@ class Roda
         
         def delete(&block)
           @delete = block if block
-          @content_type = nil
           @delete || ->(_){raise NotImplementedError, "delete"}
         end
         
         def serialize(&block)
           @serialize = block if block
-          @serialize || default_serializer || ->(obj){obj.is_a?(String) ? obj : obj.send(:to_json)}
+          @serialize || ->(_){raise NotImplementedError, "serialize"}
         end
         
         def routes(*routes)
@@ -87,7 +91,7 @@ class Roda
             @routes = SINGLETON_ROUTES.dup
             @routes << :index unless @singleton
           end
-          @request.roda_class.symbol_matcher(:id, id_pattern)
+          @request.roda_class.symbol_matcher(:id, @id_pattern)
           @routes.each { |route| @request.send(route) }
         end
         
@@ -132,18 +136,22 @@ class Roda
 
         private
         
-        def default_serializer
-          @request.roda_class.opts[:serialize]
+        def extract_options(options)
+          OPTIONS.each_pair do |key, default|
+            ivar = "@#{key}"
+            value = options.delete(key) || (@parent && @parent.instance_variable_get(ivar)) || default
+            self.instance_variable_set(ivar, value) if value
+          end
+          if @wrapper
+            raise ":wrapper should be a module" unless @wrapper.is_a? Module
+            self.extend @wrapper
+          end
+          if @serializer
+            raise ":serializer should be a class" unless @serializer.is_a? Class
+            @serialize = ->(res){@serializer.new.serialize(res)}
+          end
+          p @request.path_info, @id_pattern
         end
-        
-        def wrapper
-          @request.roda_class.opts[:wrapper]
-        end
-        
-        def id_pattern
-          @id_pattern || @request.roda_class.opts[:id_pattern] || /(\d+)/
-        end
-
         
         def symbolize_keys(args)
           _args = {}
@@ -198,6 +206,7 @@ class Roda
       module RequestMethods
         
         def api(options={}, &block)
+          extract_options options
           path = options.delete(:path) || 'api'
           subdomain = options.delete(:subdomain)
           options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
@@ -205,19 +214,22 @@ class Roda
           on(path, options, &block)
         end
 
-        def version(version, &block)
-            on("v#{version}", &block)
+        def version(version, options={}, &block)
+          extract_options options
+          on("v#{version}", options, &block)
         end
 
         def resource(path, options={})
-          @resource = Resource.new(path, self, @resource, options)
+          extract_options options
+          @resource = Resource.new(path, self, @resource, @resource_options.last)
           on(@resource.path, options) do
             @resource.captures = captures.dup unless captures.empty?
             yield @resource
-             @resource.routes!
+            @resource.routes!
             response.status = 404
           end
-           @resource = @resource.parent
+          @resource_options.pop
+          @resource = @resource.parent
         end
 
         def index(options={}, &block)
@@ -264,6 +276,15 @@ class Roda
         
         private
         
+        def extract_options(options)
+          @resource_options ||= []
+          opts = @resource_options.last || {}
+          (Resource::OPTIONS.keys & options.keys).each do |key|
+            opts[key] = options.delete(key)
+          end
+          @resource_options << opts
+        end
+        
         def _path(path=nil)
           if @resource and @resource.singleton
             path = ['', true] unless path
@@ -293,8 +314,9 @@ class Roda
         end
         
       end
-    end
 
+    end
+    
     register_plugin(:rest_api, RestApi)
 
   end
