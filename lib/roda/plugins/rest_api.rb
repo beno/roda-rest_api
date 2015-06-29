@@ -11,6 +11,7 @@ class Roda
 
       APPLICATION_JSON = 'application/json'.freeze
       SINGLETON_ROUTES = %i{ create new update show destroy edit }.freeze
+      OPTS = {}.freeze
       
       def self.load_dependencies(app, _opts = OPTS)
         app.plugin :all_verbs
