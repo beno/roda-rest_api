@@ -295,8 +295,7 @@ The plugin adds the :uuid symbol for 8-4-4-4-12 formatted UUIDs.
   end
   
   # responds to /things/7e554915-210b-4dxe-a88b-3a09a5e790ge/parts/part123
-
-
+```
 
 ### Caveat
 
