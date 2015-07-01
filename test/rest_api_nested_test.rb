@@ -20,8 +20,8 @@ class RestApiNestedTest < Minitest::Test
 					settings.routes :show, :update
 					settings.permit :name
 				end
-				r.resource :artwork, parent_key: :album_id do |artwork|
-					artwork.list { |params| Artwork.find(params) }
+				r.resource :artwork, parent_key: :special_id do |artwork|
+					artwork.list { |params| "ARTWORK FOR ALBUM #{params[:special_id]}" }
 					artwork.routes :index
 				end
 				r.resource :favorites, bare: true do |favorites|
@@ -83,7 +83,7 @@ class RestApiNestedTest < Minitest::Test
 	end
 	
 	def test_filtered_custom
-		assert_equal Artwork.find({:album_id => 8 }).to_json, request.get('/albums/8/artwork').body
+		assert_equal "ARTWORK FOR ALBUM 8", request.get('/albums/8/artwork').body
 	end
 
 	def test_deep_nest_fail

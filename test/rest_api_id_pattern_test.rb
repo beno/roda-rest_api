@@ -14,6 +14,11 @@ class RestApiIdPatternTest < Minitest::Test
           r.resource :concerts  do |rsc| # need to be explicit
             rsc.one { |atts| "CONCERT_#{atts[:id]}" }
           end
+          r.resource :things, parent_key: :foo_id do |rsc|
+            rsc.save { |atts| "SAVE_THINGS_ARTIST_#{atts[:foo_id]}" }
+            rsc.routes :create, :update
+          end
+
         end
         r.resource :venues do |rsc|
           rsc.one { |atts| "VENUE_#{atts[:id]}" }
@@ -41,6 +46,10 @@ class RestApiIdPatternTest < Minitest::Test
   
   def test_nested
     assert_equal "SONG_4", request.get('api/artists/@12/songs/foo4').body
+  end
+  
+  def test_nested_parent_key
+    assert_equal "SAVE_THINGS_ARTIST_11", request.post('api/artists/@11/things', params:{}).body
   end
 
   def test_nested_fallback
