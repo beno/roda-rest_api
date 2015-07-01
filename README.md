@@ -279,11 +279,10 @@ end
 
 ####ID pattern
 
-To support various id formats, one of the symbol_matcher symbols or a regex can be specified to match custom id formats.
-The plugin adds the :uuid symbol for 8-4-4-4-12 formatted UUIDs.
+To support various id formats a regex can be specified to match custom id formats.
 
 ```ruby
-  uuid_pat = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/
+  uuid_pat = /(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})/
   r.api id_pattern: uuid_pat
     r.resource :things do |things|
       things.one {|params| Thing.find(params) }

@@ -208,11 +208,13 @@ class Roda
           options.merge!(host: /\A#{Regexp.escape(subdomain)}\./) if subdomain
           path = true if path.nil? or path.empty?
           on(path, options, &block)
+          @resource_options.pop
         end
 
         def version(version, options={}, &block)
           extract_resource_options options
           on("v#{version}", options, &block)
+          @resource_options.pop
         end
 
         def resource(path, options={})
