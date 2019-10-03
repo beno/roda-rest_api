@@ -164,12 +164,12 @@ route do |r|
 end
 ```
 
-###Options
+### Options
 
 The plugin supports several options serialize, content_type, wrapper and id_pattern to modify processing of the request. Besides these, any number of custom options can be passed, which can be handy for the wrapper option.
 Each option can be specified and overridden at the api, version or resource level.
 
-####Serialization and content type
+#### Serialization and content type
 
 A serializer is an object that responds to :serialize and returns a string. Optionally it can provide the content_type, which may also be specified inline. Serialization can also be specified within a block inside the resource.
 
@@ -222,7 +222,7 @@ class App < Roda
 end
 ```
 
-####Wrapper
+#### Wrapper
 
 A wrapper module can be specified, containing one or more 'around_*' methods. These methods should yield with the passed arguments. Wrappers can be used for cleaning up incoming parameters, database transactions, authorization checking or serialization. A resource can hold a generic :resource option, that can be used for providing extra info to the wrapper. It can be useful to set a custom option like model_class on a resource when using wrappers.
 
@@ -277,7 +277,7 @@ class App < Roda
 end
 ```
 
-####ID pattern
+#### ID pattern
 
 To support various id formats a regex can be specified to match custom id formats.
 
